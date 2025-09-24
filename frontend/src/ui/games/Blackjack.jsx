@@ -6,7 +6,13 @@ export default function Blackjack({onDone}){
   const [stake,setStake]=useState(5)
   const [state,setState]=useState(null)
   const [res,setRes]=useState(null)
+  const [dealingCards,setDealingCards]=useState(false)
   const call = async(action)=>{
+    if(action === 'deal') {
+      setDealingCards(true)
+      setTimeout(() => setDealingCards(false), 2000)
+    }
+    
     const body = {stake, currency:'USD', action, state, params:{ref:state?.ref}}
     const r = await fetch(`${api}/casino/blackjack/play`, {method:'POST', headers, body: JSON.stringify(body)})
     const j = await r.json(); setRes(j); setState(j.result); onDone&&onDone()
@@ -74,7 +80,27 @@ export default function Blackjack({onDone}){
             <div className="text-yellow-400 font-bold text-2xl mb-6 text-shadow-gold">DEALER HAND</div>
             <div className="flex gap-3 justify-center mb-6 flex-wrap">
               {Array.isArray(state.dealer) && state.dealer.map((card, i) => (
-                <div key={i} className="playing-card w-20 h-28 flex items-center justify-center text-2xl font-black animate-card-deal" style={{animationDelay: `${i * 0.2}s`}}>
+                <div 
+                  key={i} 
+                  className="playing-card w-20 h-28 flex items-center justify-center text-2xl font-black" 
+                  style={{
+                    background: 'linear-gradient(145deg, #ffffff, #f0f0f0)',
+                    border: '2px solid #333',
+                    borderRadius: '12px',
+                    boxShadow: '0 8px 16px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.8)',
+                    transform: 'perspective(1000px) rotateY(0deg)',
+                    animation: dealingCards ? `dealCard 0.6s ease-out ${i * 0.3}s both` : 'none',
+                    transition: 'transform 0.3s ease, box-shadow 0.3s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.transform = 'perspective(1000px) rotateY(-10deg) translateY(-5px)'
+                    e.target.style.boxShadow = '0 12px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.9)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = 'perspective(1000px) rotateY(0deg) translateY(0px)'
+                    e.target.style.boxShadow = '0 8px 16px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.8)'
+                  }}
+                >
                   {card}
                 </div>
               ))}
@@ -88,7 +114,27 @@ export default function Blackjack({onDone}){
             <div className="text-yellow-400 font-bold text-2xl mb-6 text-shadow-gold">YOUR HAND</div>
             <div className="flex gap-3 justify-center mb-6 flex-wrap">
               {state.player?.map((card, i) => (
-                <div key={i} className="playing-card w-20 h-28 flex items-center justify-center text-2xl font-black animate-card-deal" style={{animationDelay: `${(i + 2) * 0.2}s`}}>
+                <div 
+                  key={i} 
+                  className="playing-card w-20 h-28 flex items-center justify-center text-2xl font-black" 
+                  style={{
+                    background: 'linear-gradient(145deg, #ffffff, #f0f0f0)',
+                    border: '2px solid #333',
+                    borderRadius: '12px',
+                    boxShadow: '0 8px 16px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.8)',
+                    transform: 'perspective(1000px) rotateY(0deg)',
+                    animation: dealingCards ? `dealCard 0.6s ease-out ${(i + 2) * 0.3}s both` : 'none',
+                    transition: 'transform 0.3s ease, box-shadow 0.3s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.transform = 'perspective(1000px) rotateY(-10deg) translateY(-5px)'
+                    e.target.style.boxShadow = '0 12px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.9)'
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = 'perspective(1000px) rotateY(0deg) translateY(0px)'
+                    e.target.style.boxShadow = '0 8px 16px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.8)'
+                  }}
+                >
                   {card}
                 </div>
               ))}

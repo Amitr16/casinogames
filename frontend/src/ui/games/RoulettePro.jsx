@@ -5,10 +5,21 @@ export default function RoulettePro({onDone}){
   const [bets,setBets]=useState([])
   const [chip,setChip]=useState(5)
   const [res,setRes]=useState(null)
+  const [spinning,setSpinning]=useState(false)
+  const [wheelRotation,setWheelRotation]=useState(0)
   const place = (b)=> setBets(prev=>[...prev,b])
   const spin = async()=>{
+    setSpinning(true)
+    setWheelRotation(prev => prev + 1800 + Math.random() * 720)
+    
     const r = await fetch(`${api}/casino/roulette/spin`, {method:'POST', headers:{'Content-Type':'application/json','X-User-Id':'demo-user'}, body: JSON.stringify({stake:1,currency:'USD', params:{bets}})})
-    const j = await r.json(); setRes(j); onDone&&onDone()
+    const j = await r.json()
+    
+    setTimeout(() => {
+      setRes(j)
+      setSpinning(false)
+      onDone&&onDone()
+    }, 3000)
   }
   return (
     <div className="space-y-8">
@@ -43,12 +54,23 @@ export default function RoulettePro({onDone}){
         
         <button 
           onClick={spin} 
+          disabled={spinning || bets.length === 0}
           className="btn-primary text-2xl px-12 py-6"
-          style={{minWidth: '200px'}}
+          style={{
+            minWidth: '200px',
+            opacity: (spinning || bets.length === 0) ? 0.6 : 1,
+            transform: spinning ? 'scale(0.95)' : 'scale(1)',
+            transition: 'all 0.2s ease'
+          }}
         >
           <span className="flex items-center gap-3">
-            <div className="text-3xl">🎡</div>
-            <span className="font-black">SPIN WHEEL</span>
+            <div className="text-3xl" style={{
+              transform: `rotate(${wheelRotation}deg)`,
+              transition: spinning ? 'none' : 'transform 0.5s ease'
+            }}>🎡</div>
+            <span className="font-black">
+              {spinning ? 'SPINNING...' : bets.length === 0 ? 'PLACE BETS' : 'SPIN WHEEL'}
+            </span>
           </span>
         </button>
       </div>
@@ -73,9 +95,24 @@ export default function RoulettePro({onDone}){
                 </div>
               ) : (
                 bets.map((b,i) => (
-                  <div key={i} className="flex justify-between items-center bg-black/40 p-3 rounded-xl border border-yellow-500/30">
+                  <div key={i} className="flex justify-between items-center bg-black/40 p-3 rounded-xl border border-yellow-500/30" style={{
+                    animation: `chipPlace 0.5s ease-out ${i * 0.1}s both`
+                  }}>
                     <span className="text-white font-semibold">{b.type}: <span className="text-yellow-400">{JSON.stringify(b.value||b.numbers)}</span></span>
-                    <div className="chip text-sm font-bold text-white flex items-center justify-center w-12 h-12">
+                    <div className="chip text-sm font-bold text-white flex items-center justify-center w-12 h-12" style={{
+                      background: `radial-gradient(circle, ${b.amount >= 100 ? '#8B0000' : b.amount >= 50 ? '#006400' : b.amount >= 25 ? '#000080' : '#8B4513'}, #000)`,
+                      border: '3px solid #FFD700',
+                      borderRadius: '50%',
+                      boxShadow: '0 4px 8px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.3)',
+                      transform: 'perspective(100px) rotateX(15deg)',
+                      transition: 'transform 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.transform = 'perspective(100px) rotateX(15deg) translateY(-2px)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.transform = 'perspective(100px) rotateX(15deg) translateY(0px)'
+                    }}>
                       ${b.amount}
                     </div>
                   </div>
