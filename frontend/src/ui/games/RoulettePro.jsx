@@ -54,11 +54,11 @@ export default function RoulettePro({onDone}){
         
         <button 
           onClick={spin} 
-          disabled={spinning || bets.length === 0}
+          disabled={spinning}
           className="btn-primary text-2xl px-12 py-6"
           style={{
             minWidth: '200px',
-            opacity: (spinning || bets.length === 0) ? 0.6 : 1,
+            opacity: spinning ? 0.6 : 1,
             transform: spinning ? 'scale(0.95)' : 'scale(1)',
             transition: 'all 0.2s ease'
           }}
@@ -69,7 +69,7 @@ export default function RoulettePro({onDone}){
               transition: spinning ? 'none' : 'transform 0.5s ease'
             }}>🎡</div>
             <span className="font-black">
-              {spinning ? 'SPINNING...' : bets.length === 0 ? 'PLACE BETS' : 'SPIN WHEEL'}
+              {spinning ? 'SPINNING...' : 'SPIN WHEEL'}
             </span>
           </span>
         </button>
