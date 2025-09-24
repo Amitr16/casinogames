@@ -37,32 +37,52 @@ export default function App(){
   useEffect(()=>{ refreshBalance() },[])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900 p-6">
-      <div className="max-w-7xl mx-auto">
-        <header className="flex items-center justify-between mb-8 p-6 bg-gradient-to-r from-yellow-600 to-yellow-400 rounded-2xl shadow-2xl border-4 border-yellow-300">
-          <div className="text-3xl font-bold text-black flex items-center gap-3">
-            🎰 <span className="bg-gradient-to-r from-red-600 to-red-800 bg-clip-text text-transparent">Kryzel Casino Pro</span>
-          </div>
-          <div className="flex gap-4 items-center">
-            <div className="text-lg font-semibold text-black">
-              Balance: <span className="font-mono bg-black/20 px-3 py-1 rounded-lg">${balance?.balance || '1000'} {balance?.currency || 'USD'}</span>
+    <div className="min-h-screen p-4 md:p-8">
+      <div className="max-w-8xl mx-auto">
+        <header className="casino-header flex items-center justify-between mb-8 p-8 rounded-3xl animate-floating">
+          <div className="flex items-center gap-4">
+            <div className="text-6xl animate-glow-pulse">🎰</div>
+            <div>
+              <h1 className="casino-title text-4xl md:text-5xl font-black">
+                KRYZEL CASINO
+              </h1>
+              <div className="text-black font-bold text-lg opacity-80">Royal Gaming Experience</div>
             </div>
-            <a className="btn-ghost text-black border-black/20 hover:border-black/40" href="/sportsbook">← Back to Sportsbook</a>
+          </div>
+          <div className="flex gap-6 items-center">
+            <div className="balance-display text-xl font-bold">
+              💰 ${balance?.balance || '1000'} {balance?.currency || 'USD'}
+            </div>
+            <a className="btn-ghost" href="/sportsbook">
+              ← Sportsbook
+            </a>
           </div>
         </header>
-        <nav className="flex gap-3 mb-8 flex-wrap justify-center">
-          {TABS.map(t=>(<button key={t.key} className={`btn ${tab===t.key?'btn-primary':'btn-ghost'}`} onClick={()=>setTab(t.key)}>{t.label}</button>))}
+        
+        <nav className="flex gap-3 mb-8 flex-wrap justify-center p-4 glass-effect rounded-2xl neon-glow">
+          {TABS.map(t=>(
+            <button 
+              key={t.key} 
+              className={`nav-tab ${tab===t.key?'active':''}`} 
+              onClick={()=>setTab(t.key)}
+            >
+              {t.label}
+            </button>
+          ))}
         </nav>
-        <main className="card">
-          {tab==='roulette' && <Roulette onDone={refreshBalance}/>}
-          {tab==='roulette-pro' && <RoulettePro onDone={refreshBalance}/>}
-          {tab==='blackjack' && <Blackjack onDone={refreshBalance}/>}
-          {tab==='baccarat' && <Baccarat onDone={refreshBalance}/>}
-          {tab==='slots' && <Slots onDone={refreshBalance}/>}
-          {tab==='reel-editor' && <SlotsEditor/>}
-          {tab==='crash' && <Crash onDone={refreshBalance}/>}
-          {tab==='crash-live' && <CrashLive/>}
-          {tab==='admin' && <Admin/>}
+        
+        <main className="game-card">
+          <div className="relative z-10">
+            {tab==='roulette' && <Roulette onDone={refreshBalance}/>}
+            {tab==='roulette-pro' && <RoulettePro onDone={refreshBalance}/>}
+            {tab==='blackjack' && <Blackjack onDone={refreshBalance}/>}
+            {tab==='baccarat' && <Baccarat onDone={refreshBalance}/>}
+            {tab==='slots' && <Slots onDone={refreshBalance}/>}
+            {tab==='reel-editor' && <SlotsEditor/>}
+            {tab==='crash' && <Crash onDone={refreshBalance}/>}
+            {tab==='crash-live' && <CrashLive/>}
+            {tab==='admin' && <Admin/>}
+          </div>
         </main>
       </div>
     </div>
@@ -79,54 +99,113 @@ function Admin(){
   const save = async()=>{ const r=await fetch(`${api}/casino/admin/config/${game}`,{method:'POST',headers,body:JSON.stringify(conf)}); if(r.ok) alert('Configuration saved successfully!') }
   const loadKpi = async()=>{ const r=await fetch(`${api}/casino/history?limit=200`,{headers}); if(r.ok){ const rows=await r.json(); const ggr=rows.reduce((a,b)=>a+(b.stake-b.payout),0); const wagered=rows.reduce((a,b)=>a+b.stake,0); const rtp=wagered?(1-(ggr/wagered)):0; setKpi({ggr:+ggr.toFixed(2), rtp:+rtp.toFixed(3), rounds:rows.length}) } }
   useEffect(()=>{ load(); loadKpi() },[game])
-  if(!conf) return <div className="flex items-center justify-center p-8"><div className="text-xl text-yellow-400 animate-pulse">Loading Admin Panel...</div></div>
+  if(!conf) return <div className="flex items-center justify-center p-12"><div className="text-3xl text-yellow-400 animate-glow-pulse text-shadow-gold">Loading Admin Panel...</div></div>
   return (
-    <div className="space-y-6">
-      <div className="p-6 bg-gradient-to-r from-purple-700 to-purple-800 rounded-xl border-2 border-yellow-400 shadow-2xl">
-        <div className="text-2xl font-bold text-yellow-400 mb-4 text-center">📊 Casino Analytics Dashboard</div>
-        <div className="grid grid-cols-3 gap-4">
-          <div className="text-center p-4 bg-black/30 rounded-lg border border-white/20">
-            <div className="text-3xl font-bold text-green-400">${kpi.ggr}</div>
-            <div className="text-white/80 font-semibold">Gross Gaming Revenue</div>
+    <div className="space-y-8">
+      <div className="text-center mb-8">
+        <h2 className="text-5xl font-bold text-shadow-gold text-yellow-400 mb-4 animate-glow-pulse casino-title">
+          ⚙️ CASINO CONTROL CENTER ⚙️
+        </h2>
+        <div className="text-xl text-yellow-300 opacity-90 font-semibold">Analytics • Configuration • Management</div>
+      </div>
+      
+      <div className="glass-effect p-8 rounded-3xl neon-glow">
+        <div className="text-3xl font-bold text-yellow-400 mb-8 text-center text-shadow-gold">📊 PERFORMANCE ANALYTICS 📊</div>
+        <div className="grid grid-cols-3 gap-6">
+          <div className="kpi-card">
+            <div className="text-5xl font-black text-green-400 mb-3">${kpi.ggr}</div>
+            <div className="text-white font-bold text-lg">Gross Gaming Revenue</div>
+            <div className="text-green-300 text-sm opacity-80 mt-2">Total house edge</div>
           </div>
-          <div className="text-center p-4 bg-black/30 rounded-lg border border-white/20">
-            <div className="text-3xl font-bold text-blue-400">{(kpi.rtp * 100).toFixed(1)}%</div>
-            <div className="text-white/80 font-semibold">Return to Player</div>
+          <div className="kpi-card">
+            <div className="text-5xl font-black text-blue-400 mb-3">{(kpi.rtp * 100).toFixed(1)}%</div>
+            <div className="text-white font-bold text-lg">Return to Player</div>
+            <div className="text-blue-300 text-sm opacity-80 mt-2">Player payout rate</div>
           </div>
-          <div className="text-center p-4 bg-black/30 rounded-lg border border-white/20">
-            <div className="text-3xl font-bold text-orange-400">{kpi.rounds}</div>
-            <div className="text-white/80 font-semibold">Total Rounds</div>
+          <div className="kpi-card">
+            <div className="text-5xl font-black text-orange-400 mb-3">{kpi.rounds}</div>
+            <div className="text-white font-bold text-lg">Total Rounds</div>
+            <div className="text-orange-300 text-sm opacity-80 mt-2">Games played</div>
           </div>
         </div>
       </div>
-      <div className="p-6 bg-gradient-to-r from-gray-700 to-gray-800 rounded-xl border-2 border-white/20 shadow-2xl">
-        <div className="text-xl font-bold text-yellow-400 mb-4 text-center">⚙️ Game Configuration</div>
-        <div className="flex gap-4 items-center justify-center mb-6">
-          <select value={game} onChange={e=>setGame(e.target.value)} className="input w-40">
-            <option value="slots">🎰 Slots</option>
-            <option value="roulette">🎯 Roulette</option>
-            <option value="blackjack">🂡 Blackjack</option>
-            <option value="baccarat">🂢 Baccarat</option>
-            <option value="crash">🚀 Crash</option>
-          </select>
-          <button onClick={save} className="btn-primary">💾 Save Configuration</button>
+      
+      <div className="glass-effect p-8 rounded-3xl neon-glow">
+        <div className="text-3xl font-bold text-yellow-400 mb-8 text-center text-shadow-gold">🎮 GAME CONFIGURATION 🎮</div>
+        
+        <div className="flex gap-8 items-center justify-center mb-8">
+          <div className="flex flex-col items-center gap-3">
+            <label className="text-yellow-400 font-bold text-sm uppercase tracking-widest">Select Game</label>
+            <select 
+              value={game} 
+              onChange={e=>setGame(e.target.value)} 
+              className="input w-48 text-center text-xl font-bold"
+            >
+              <option value="slots">🎰 Royal Slots</option>
+              <option value="roulette">🎡 Roulette Royale</option>
+              <option value="blackjack">🂡 Blackjack Royale</option>
+              <option value="baccarat">🂢 Baccarat Royale</option>
+              <option value="crash">🚀 Crash Royale</option>
+            </select>
+          </div>
+          
+          <button 
+            onClick={save} 
+            className="btn-primary text-2xl px-12 py-6"
+            style={{minWidth: '200px'}}
+          >
+            <span className="flex items-center gap-3">
+              <div className="text-3xl">💾</div>
+              <span className="font-black">SAVE CONFIG</span>
+            </span>
+          </button>
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="text-yellow-400 font-semibold">Target RTP</label>
-            <input type="number" step="0.001" value={conf.target_rtp} onChange={e=>setConf({...conf, target_rtp: parseFloat(e.target.value)})} className="input w-full" />
+        
+        <div className="grid grid-cols-2 gap-8">
+          <div className="space-y-4">
+            <label className="text-yellow-400 font-bold text-lg uppercase tracking-wide">Target RTP (%)</label>
+            <input 
+              type="number" 
+              step="0.001" 
+              value={conf.target_rtp} 
+              onChange={e=>setConf({...conf, target_rtp: parseFloat(e.target.value)})} 
+              className="input w-full text-center text-2xl font-bold" 
+            />
+            <div className="text-yellow-300 text-sm opacity-70">Return to Player percentage</div>
           </div>
-          <div className="space-y-2">
-            <label className="text-yellow-400 font-semibold">Volatility</label>
-            <input type="number" step="0.1" value={conf.volatility} onChange={e=>setConf({...conf, volatility: parseFloat(e.target.value)})} className="input w-full" />
+          
+          <div className="space-y-4">
+            <label className="text-yellow-400 font-bold text-lg uppercase tracking-wide">Volatility</label>
+            <input 
+              type="number" 
+              step="0.1" 
+              value={conf.volatility} 
+              onChange={e=>setConf({...conf, volatility: parseFloat(e.target.value)})} 
+              className="input w-full text-center text-2xl font-bold" 
+            />
+            <div className="text-yellow-300 text-sm opacity-70">Game variance level</div>
           </div>
-          <div className="space-y-2">
-            <label className="text-yellow-400 font-semibold">Min Bet ($)</label>
-            <input type="number" value={conf.min_bet} onChange={e=>setConf({...conf, min_bet: parseFloat(e.target.value)})} className="input w-full" />
+          
+          <div className="space-y-4">
+            <label className="text-yellow-400 font-bold text-lg uppercase tracking-wide">Min Bet ($)</label>
+            <input 
+              type="number" 
+              value={conf.min_bet} 
+              onChange={e=>setConf({...conf, min_bet: parseFloat(e.target.value)})} 
+              className="input w-full text-center text-2xl font-bold" 
+            />
+            <div className="text-yellow-300 text-sm opacity-70">Minimum bet amount</div>
           </div>
-          <div className="space-y-2">
-            <label className="text-yellow-400 font-semibold">Max Bet ($)</label>
-            <input type="number" value={conf.max_bet} onChange={e=>setConf({...conf, max_bet: parseFloat(e.target.value)})} className="input w-full" />
+          
+          <div className="space-y-4">
+            <label className="text-yellow-400 font-bold text-lg uppercase tracking-wide">Max Bet ($)</label>
+            <input 
+              type="number" 
+              value={conf.max_bet} 
+              onChange={e=>setConf({...conf, max_bet: parseFloat(e.target.value)})} 
+              className="input w-full text-center text-2xl font-bold" 
+            />
+            <div className="text-yellow-300 text-sm opacity-70">Maximum bet amount</div>
           </div>
         </div>
       </div>
