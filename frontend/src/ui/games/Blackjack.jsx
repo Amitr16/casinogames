@@ -79,31 +79,109 @@ export default function Blackjack({onDone}){
           <div className="text-center">
             <div className="text-yellow-400 font-bold text-2xl mb-6 text-shadow-gold">DEALER HAND</div>
             <div className="flex gap-3 justify-center mb-6 flex-wrap">
-              {Array.isArray(state.dealer) && state.dealer.map((card, i) => (
-                <div 
-                  key={i} 
-                  className="playing-card w-20 h-28 flex items-center justify-center text-2xl font-black" 
-                  style={{
-                    background: 'linear-gradient(145deg, #ffffff, #f0f0f0)',
-                    border: '2px solid #333',
-                    borderRadius: '12px',
-                    boxShadow: '0 8px 16px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.8)',
-                    transform: 'perspective(1000px) rotateY(0deg)',
-                    animation: dealingCards ? `dealCard 0.6s ease-out ${i * 0.3}s both` : 'none',
-                    transition: 'transform 0.3s ease, box-shadow 0.3s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.transform = 'perspective(1000px) rotateY(-10deg) translateY(-5px)'
-                    e.target.style.boxShadow = '0 12px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.9)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.transform = 'perspective(1000px) rotateY(0deg) translateY(0px)'
-                    e.target.style.boxShadow = '0 8px 16px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.8)'
-                  }}
-                >
-                  {card}
-                </div>
-              ))}
+              {Array.isArray(state.dealer) && state.dealer.map((card, i) => {
+                const getSuitSymbol = (cardStr) => {
+                  if (cardStr.includes('♠') || cardStr.includes('S')) return '♠';
+                  if (cardStr.includes('♥') || cardStr.includes('H')) return '♥';
+                  if (cardStr.includes('♦') || cardStr.includes('D')) return '♦';
+                  if (cardStr.includes('♣') || cardStr.includes('C')) return '♣';
+                  return '';
+                };
+                
+                const getCardValue = (cardStr) => {
+                  const value = cardStr.replace(/[♠♥♦♣SHDC]/g, '').trim();
+                  return value || cardStr;
+                };
+                
+                const suit = getSuitSymbol(card);
+                const value = getCardValue(card);
+                const isRed = suit === '♥' || suit === '♦';
+                const cardColor = isRed ? '#DC143C' : '#000000';
+                
+                return (
+                  <div 
+                    key={i} 
+                    className="playing-card"
+                    style={{
+                      width: '100px',
+                      height: '140px',
+                      background: 'linear-gradient(145deg, #FFFEF7, #F8F8FF, #FFFEF7)',
+                      border: '3px solid #2C2C2C',
+                      borderRadius: '15px',
+                      boxShadow: '0 12px 24px rgba(0,0,0,0.4), inset 0 2px 4px rgba(255,255,255,0.9), 0 0 0 1px rgba(255,255,255,0.8)',
+                      transform: 'perspective(1000px) rotateY(0deg)',
+                      animation: dealingCards ? `dealCard 0.6s ease-out ${i * 0.3}s both` : 'none',
+                      transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                      position: 'relative',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontFamily: 'serif',
+                      fontSize: '24px',
+                      fontWeight: 'bold',
+                      color: cardColor,
+                      textShadow: '1px 1px 2px rgba(0,0,0,0.1)',
+                      overflow: 'hidden'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'perspective(1000px) rotateY(-10deg) translateY(-8px)'
+                      e.currentTarget.style.boxShadow = '0 16px 32px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.95), 0 0 0 1px rgba(255,255,255,0.9)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'perspective(1000px) rotateY(0deg) translateY(0px)'
+                      e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.4), inset 0 2px 4px rgba(255,255,255,0.9), 0 0 0 1px rgba(255,255,255,0.8)'
+                    }}
+                  >
+                    <div style={{
+                      position: 'absolute',
+                      top: '8px',
+                      left: '8px',
+                      fontSize: '16px',
+                      fontWeight: 'bold',
+                      lineHeight: '1',
+                      textAlign: 'center',
+                      color: cardColor
+                    }}>
+                      <div>{value}</div>
+                      <div style={{ fontSize: '14px' }}>{suit}</div>
+                    </div>
+                    <div style={{
+                      position: 'absolute',
+                      bottom: '8px',
+                      right: '8px',
+                      fontSize: '16px',
+                      fontWeight: 'bold',
+                      lineHeight: '1',
+                      textAlign: 'center',
+                      transform: 'rotate(180deg)',
+                      color: cardColor
+                    }}>
+                      <div>{value}</div>
+                      <div style={{ fontSize: '14px' }}>{suit}</div>
+                    </div>
+                    
+                    <div style={{
+                      fontSize: '36px',
+                      fontWeight: 'bold',
+                      textAlign: 'center',
+                      textShadow: '2px 2px 4px rgba(0,0,0,0.2)',
+                      color: cardColor
+                    }}>
+                      {suit}
+                    </div>
+                    
+                    <div style={{
+                      position: 'absolute',
+                      inset: '0',
+                      background: `radial-gradient(circle at 20% 20%, rgba(255,255,255,0.1), transparent 50%), 
+                                   radial-gradient(circle at 80% 80%, rgba(255,255,255,0.1), transparent 50%)`,
+                      borderRadius: '12px',
+                      pointerEvents: 'none'
+                    }} />
+                  </div>
+                );
+              })}
             </div>
             <div className="text-white font-bold text-xl bg-black/50 rounded-xl p-3 inline-block">
               Total: <span className="text-yellow-400 text-2xl">{state.dv}</span>
@@ -113,31 +191,109 @@ export default function Blackjack({onDone}){
           <div className="text-center">
             <div className="text-yellow-400 font-bold text-2xl mb-6 text-shadow-gold">YOUR HAND</div>
             <div className="flex gap-3 justify-center mb-6 flex-wrap">
-              {state.player?.map((card, i) => (
-                <div 
-                  key={i} 
-                  className="playing-card w-20 h-28 flex items-center justify-center text-2xl font-black" 
-                  style={{
-                    background: 'linear-gradient(145deg, #ffffff, #f0f0f0)',
-                    border: '2px solid #333',
-                    borderRadius: '12px',
-                    boxShadow: '0 8px 16px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.8)',
-                    transform: 'perspective(1000px) rotateY(0deg)',
-                    animation: dealingCards ? `dealCard 0.6s ease-out ${(i + 2) * 0.3}s both` : 'none',
-                    transition: 'transform 0.3s ease, box-shadow 0.3s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.transform = 'perspective(1000px) rotateY(-10deg) translateY(-5px)'
-                    e.target.style.boxShadow = '0 12px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.9)'
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.transform = 'perspective(1000px) rotateY(0deg) translateY(0px)'
-                    e.target.style.boxShadow = '0 8px 16px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.8)'
-                  }}
-                >
-                  {card}
-                </div>
-              ))}
+              {state.player?.map((card, i) => {
+                const getSuitSymbol = (cardStr) => {
+                  if (cardStr.includes('♠') || cardStr.includes('S')) return '♠';
+                  if (cardStr.includes('♥') || cardStr.includes('H')) return '♥';
+                  if (cardStr.includes('♦') || cardStr.includes('D')) return '♦';
+                  if (cardStr.includes('♣') || cardStr.includes('C')) return '♣';
+                  return '';
+                };
+                
+                const getCardValue = (cardStr) => {
+                  const value = cardStr.replace(/[♠♥♦♣SHDC]/g, '').trim();
+                  return value || cardStr;
+                };
+                
+                const suit = getSuitSymbol(card);
+                const value = getCardValue(card);
+                const isRed = suit === '♥' || suit === '♦';
+                const cardColor = isRed ? '#DC143C' : '#000000';
+                
+                return (
+                  <div 
+                    key={i} 
+                    className="playing-card"
+                    style={{
+                      width: '100px',
+                      height: '140px',
+                      background: 'linear-gradient(145deg, #FFFEF7, #F8F8FF, #FFFEF7)',
+                      border: '3px solid #2C2C2C',
+                      borderRadius: '15px',
+                      boxShadow: '0 12px 24px rgba(0,0,0,0.4), inset 0 2px 4px rgba(255,255,255,0.9), 0 0 0 1px rgba(255,255,255,0.8)',
+                      transform: 'perspective(1000px) rotateY(0deg)',
+                      animation: dealingCards ? `dealCard 0.6s ease-out ${(i + 2) * 0.3}s both` : 'none',
+                      transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+                      position: 'relative',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontFamily: 'serif',
+                      fontSize: '24px',
+                      fontWeight: 'bold',
+                      color: cardColor,
+                      textShadow: '1px 1px 2px rgba(0,0,0,0.1)',
+                      overflow: 'hidden'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'perspective(1000px) rotateY(-10deg) translateY(-8px)'
+                      e.currentTarget.style.boxShadow = '0 16px 32px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.95), 0 0 0 1px rgba(255,255,255,0.9)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'perspective(1000px) rotateY(0deg) translateY(0px)'
+                      e.currentTarget.style.boxShadow = '0 12px 24px rgba(0,0,0,0.4), inset 0 2px 4px rgba(255,255,255,0.9), 0 0 0 1px rgba(255,255,255,0.8)'
+                    }}
+                  >
+                    <div style={{
+                      position: 'absolute',
+                      top: '8px',
+                      left: '8px',
+                      fontSize: '16px',
+                      fontWeight: 'bold',
+                      lineHeight: '1',
+                      textAlign: 'center',
+                      color: cardColor
+                    }}>
+                      <div>{value}</div>
+                      <div style={{ fontSize: '14px' }}>{suit}</div>
+                    </div>
+                    <div style={{
+                      position: 'absolute',
+                      bottom: '8px',
+                      right: '8px',
+                      fontSize: '16px',
+                      fontWeight: 'bold',
+                      lineHeight: '1',
+                      textAlign: 'center',
+                      transform: 'rotate(180deg)',
+                      color: cardColor
+                    }}>
+                      <div>{value}</div>
+                      <div style={{ fontSize: '14px' }}>{suit}</div>
+                    </div>
+                    
+                    <div style={{
+                      fontSize: '36px',
+                      fontWeight: 'bold',
+                      textAlign: 'center',
+                      textShadow: '2px 2px 4px rgba(0,0,0,0.2)',
+                      color: cardColor
+                    }}>
+                      {suit}
+                    </div>
+                    
+                    <div style={{
+                      position: 'absolute',
+                      inset: '0',
+                      background: `radial-gradient(circle at 20% 20%, rgba(255,255,255,0.1), transparent 50%), 
+                                   radial-gradient(circle at 80% 80%, rgba(255,255,255,0.1), transparent 50%)`,
+                      borderRadius: '12px',
+                      pointerEvents: 'none'
+                    }} />
+                  </div>
+                );
+              })}
             </div>
             <div className="text-white font-bold text-xl bg-black/50 rounded-xl p-3 inline-block">
               Total: <span className="text-yellow-400 text-2xl">{state.pv}</span>
