@@ -59,6 +59,11 @@ async def wallet_balance(user_id:str):
         return {"balance": 1000, "currency": "USD"}
 
 app = FastAPI(title="Kryzel Casino Suite Pro", version="0.3.0")
+
+# Health check endpoint
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "timestamp": time.time()}
 app.add_middleware(CORSMiddleware, allow_origins=settings.CORS_ORIGINS, allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 
 @app.on_event("startup")

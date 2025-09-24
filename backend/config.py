@@ -11,6 +11,6 @@ class Settings(BaseModel):
     WALLET_BET_URL: str = os.getenv("WALLET_BET_URL","/wallet/bet")
     WALLET_CREDIT_URL: str = os.getenv("WALLET_CREDIT_URL","/wallet/credit")
     SQLALCHEMY_DATABASE_URI: str = os.getenv("SQLALCHEMY_DATABASE_URI","sqlite+aiosqlite:///./casino.db")
-    CORS_ORIGINS: List[str] = json.loads(os.getenv("CORS_ORIGINS",'["http://localhost:5173"]'))
+    CORS_ORIGINS: List[str] = json.loads(os.getenv("CORS_ORIGINS",'["http://localhost:5173", "https://casino-frontend.onrender.com"]'))
 
 settings = Settings()
