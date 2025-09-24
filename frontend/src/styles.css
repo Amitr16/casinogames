@@ -947,6 +947,35 @@
   }
 }
 
+/* Explosion Animation for Crash Game */
+@keyframes explosion {
+  0% { 
+    transform: translate(-50%, 50%) scale(0.5); 
+    opacity: 1; 
+    filter: brightness(2) hue-rotate(0deg);
+  }
+  25% { 
+    transform: translate(-50%, 50%) scale(1.5); 
+    opacity: 1; 
+    filter: brightness(3) hue-rotate(45deg);
+  }
+  50% { 
+    transform: translate(-50%, 50%) scale(2.0); 
+    opacity: 0.8; 
+    filter: brightness(4) hue-rotate(90deg);
+  }
+  75% { 
+    transform: translate(-50%, 50%) scale(2.5); 
+    opacity: 0.4; 
+    filter: brightness(2) hue-rotate(135deg);
+  }
+  100% { 
+    transform: translate(-50%, 50%) scale(3.0); 
+    opacity: 0; 
+    filter: brightness(1) hue-rotate(180deg);
+  }
+}
+
 /* TAILWIND DIRECTIVES AT END */
 @tailwind base;
 @tailwind components;
