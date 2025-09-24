@@ -1,10 +1,6 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
 
-@layer base {
+/* PROFESSIONAL CASINO STYLING - DIRECT CSS (NO LAYERS) */
   * {
     box-sizing: border-box;
   }
@@ -48,9 +44,8 @@
     pointer-events: none;
     z-index: -1;
   }
-}
 
-@layer components {
+/* CASINO COMPONENTS - DIRECT CSS */
   .casino-header {
     background: 
       linear-gradient(135deg, rgba(139, 69, 19, 0.9) 0%, rgba(218, 165, 32, 0.95) 25%, rgba(255, 215, 0, 1) 50%, rgba(218, 165, 32, 0.95) 75%, rgba(139, 69, 19, 0.9) 100%),
@@ -869,3 +864,8 @@
     padding: 10px 16px;
   }
 }
+
+/* TAILWIND DIRECTIVES AT END */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
