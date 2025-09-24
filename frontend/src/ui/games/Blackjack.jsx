@@ -91,7 +91,10 @@ export default function Blackjack({onDone}){
                   if (cardStr.includes('♥') || cardStr.includes('H')) return '♥';
                   if (cardStr.includes('♦') || cardStr.includes('D')) return '♦';
                   if (cardStr.includes('♣') || cardStr.includes('C')) return '♣';
-                  return '';
+                  const suits = ['♠', '♥', '♦', '♣'];
+                  const cardValue = cardStr.replace(/[♠♥♦♣SHDC]/g, '').trim();
+                  const suitIndex = (cardValue.charCodeAt(0) + i) % 4;
+                  return suits[suitIndex];
                 };
                 
                 const getCardValue = (cardStr) => {
@@ -209,7 +212,10 @@ export default function Blackjack({onDone}){
                   if (cardStr.includes('♥') || cardStr.includes('H')) return '♥';
                   if (cardStr.includes('♦') || cardStr.includes('D')) return '♦';
                   if (cardStr.includes('♣') || cardStr.includes('C')) return '♣';
-                  return '';
+                  const suits = ['♠', '♥', '♦', '♣'];
+                  const cardValue = cardStr.replace(/[♠♥♦♣SHDC]/g, '').trim();
+                  const suitIndex = (cardValue.charCodeAt(0) + i) % 4;
+                  return suits[suitIndex];
                 };
                 
                 const getCardValue = (cardStr) => {
