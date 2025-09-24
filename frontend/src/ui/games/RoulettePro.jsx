@@ -155,7 +155,7 @@ function RoulettePro({onDone}){
                     top: '50%',
                     left: '50%',
                     transformOrigin: '0 0',
-                    transform: `translate(-50%, -50%) rotate(${angle}deg) translate(0, -338px)`
+                    transform: `translate(-50%, -50%) rotate(${angle}deg) translate(0, -340px)`
                   }}>
                     {/* Colored Segment Background */}
                     <div style={{
@@ -163,7 +163,7 @@ function RoulettePro({onDone}){
                       height: '0',
                       borderLeft: '8px solid transparent',
                       borderRight: '8px solid transparent',
-                      borderBottom: `338px solid ${segmentColor}`,
+                      borderBottom: `340px solid ${segmentColor}`,
                       opacity: 0.9
                     }} />
                     
@@ -245,7 +245,7 @@ function RoulettePro({onDone}){
           transform: spinning 
             ? `translate(-50%, -50%) rotate(${-wheelRotation * 1.5}deg) translate(0, -420px)`
             : res 
-              ? `translate(-50%, -50%) rotate(${res.result.spin.pocket * (360/37)}deg) translate(0, -420px)`
+              ? `translate(-50%, -50%) rotate(${[0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26].indexOf(res.result.spin.pocket) * (360/37)}deg) translate(0, -420px)`
               : 'translate(-50%, -50%) rotate(0deg) translate(0, -420px)',
           width: '32px',
           height: '32px',
