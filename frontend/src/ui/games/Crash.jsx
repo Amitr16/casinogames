@@ -6,13 +6,16 @@ export default function Crash({onDone}){
   const [res,setRes]=useState(null)
   const [isFlying,setIsFlying]=useState(false)
   const [currentMultiplier,setCurrentMultiplier]=useState(1.0)
+  const [flightTime,setFlightTime]=useState(0)
   const play= async()=>{
     setIsFlying(true)
     setCurrentMultiplier(1.0)
+    setFlightTime(0)
     setRes(null)
     
     const flightInterval = setInterval(() => {
       setCurrentMultiplier(prev => prev + 0.05)
+      setFlightTime(prev => prev + 0.1)
     }, 100)
     
     const apiPromise = fetch(`${api}/casino/crash/play`, {method:'POST', headers:{'Content-Type':'application/json','X-User-Id':'demo-user'}, body: JSON.stringify({stake, currency:'USD', params:{auto_cashout:auto}})})
@@ -20,6 +23,7 @@ export default function Crash({onDone}){
     setTimeout(async () => {
       clearInterval(flightInterval)
       setIsFlying(false)
+      setFlightTime(0)
       
       const r = await apiPromise
       const j = await r.json()
@@ -92,11 +96,10 @@ export default function Crash({onDone}){
         {/* Flying Rocket */}
         <div style={{
           position: 'absolute',
-          bottom: '20px',
-          left: '50%',
-          transform: `translateX(-50%) translateY(-${Math.min(currentMultiplier * 15, 300)}px)`,
+          bottom: `${20 + Math.min(currentMultiplier * 15, 300)}px`,
+          left: `${Math.min(10 + flightTime * 25, 85)}%`,
           fontSize: '60px',
-          transition: 'transform 0.1s ease-linear'
+          transition: 'all 0.1s ease-linear'
         }}>
           🚀
         </div>
@@ -115,16 +118,16 @@ export default function Crash({onDone}){
           {currentMultiplier.toFixed(2)}x
         </div>
         
-        {/* Flight Trail */}
+        {/* Diagonal Flight Trail */}
         <div style={{
           position: 'absolute',
           bottom: '20px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: '4px',
+          left: '10%',
+          width: `${Math.min(flightTime * 25, 75)}%`,
           height: `${Math.min(currentMultiplier * 15, 300)}px`,
-          background: 'linear-gradient(to top, #f97316, transparent)',
-          opacity: 0.8
+          background: `linear-gradient(135deg, #f97316 0%, rgba(249, 115, 22, 0.8) 50%, transparent 100%)`,
+          opacity: 0.7,
+          clipPath: `polygon(0 100%, ${Math.min(flightTime * 2, 8)}px ${100 - Math.min(currentMultiplier * 0.8, 80)}%, ${Math.min(flightTime * 25, 75)}% ${100 - Math.min(currentMultiplier * 15, 300)/4}%, 0 100%)`
         }}></div>
         
         {/* Stars Background */}
