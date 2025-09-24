@@ -864,6 +864,34 @@
   }
 }
 
+/* Rocket Flight Animations */
+@keyframes rocketFly {
+  0% { transform: translateX(-50%) translateY(var(--rocket-y)) rotate(-2deg); }
+  100% { transform: translateX(-50%) translateY(var(--rocket-y)) rotate(2deg); }
+}
+
+@keyframes trailGlow {
+  0% { opacity: 0.5; box-shadow: 0 0 10px orange; }
+  100% { opacity: 0.8; box-shadow: 0 0 20px orange, 0 0 30px red; }
+}
+
+@keyframes rocketExplosion {
+  0% { transform: scale(1) rotate(0deg); opacity: 1; }
+  50% { transform: scale(1.5) rotate(180deg); opacity: 0.8; }
+  100% { transform: scale(3) rotate(360deg); opacity: 0; }
+}
+
+/* Roulette Wheel Rotation Animation */
+@keyframes wheelSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(1440deg); }
+}
+
+@keyframes wheelSlowSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 /* TAILWIND DIRECTIVES AT END */
 @tailwind base;
 @tailwind components;

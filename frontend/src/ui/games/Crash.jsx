@@ -4,9 +4,26 @@ export default function Crash({onDone}){
   const [stake,setStake]=useState(1)
   const [auto,setAuto]=useState(2.0)
   const [res,setRes]=useState(null)
+  const [isFlying,setIsFlying]=useState(false)
+  const [currentMultiplier,setCurrentMultiplier]=useState(1.0)
   const play= async()=>{
+    setIsFlying(true)
+    setCurrentMultiplier(1.0)
+    setRes(null)
+    
+    const flightInterval = setInterval(() => {
+      setCurrentMultiplier(prev => prev + 0.05)
+    }, 100)
+    
     const r = await fetch(`${api}/casino/crash/play`, {method:'POST', headers:{'Content-Type':'application/json','X-User-Id':'demo-user'}, body: JSON.stringify({stake, currency:'USD', params:{auto_cashout:auto}})})
-    const j = await r.json(); setRes(j); onDone&&onDone()
+    const j = await r.json()
+    
+    clearInterval(flightInterval)
+    setTimeout(() => {
+      setIsFlying(false)
+      setRes(j)
+      onDone&&onDone()
+    }, 1000)
   }
   return <div className="space-y-8">
     <div className="text-center mb-8">
@@ -58,6 +75,53 @@ export default function Crash({onDone}){
         </div>
       </div>
     </div>
+    
+    {/* Rocket Flight Animation Area */}
+    {isFlying && (
+      <div className="relative h-96 bg-gradient-to-b from-blue-900 to-purple-900 rounded-3xl border-4 border-yellow-500 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 animate-pulse"></div>
+        
+        {/* Flying Rocket */}
+        <div 
+          className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-6xl transition-all duration-100 ease-linear"
+          style={{
+            transform: `translateX(-50%) translateY(-${Math.min(currentMultiplier * 20, 320)}px)`,
+            animation: 'rocketFly 0.1s ease-in-out infinite alternate'
+          }}
+        >
+          🚀
+        </div>
+        
+        {/* Multiplier Display */}
+        <div className="absolute top-8 left-1/2 transform -translate-x-1/2 text-6xl font-black text-yellow-400 text-shadow-gold animate-pulse">
+          {currentMultiplier.toFixed(2)}x
+        </div>
+        
+        {/* Flight Trail */}
+        <div 
+          className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-2 bg-gradient-to-t from-orange-500 to-transparent opacity-70"
+          style={{
+            height: `${Math.min(currentMultiplier * 20, 320)}px`,
+            animation: 'trailGlow 0.5s ease-in-out infinite alternate'
+          }}
+        ></div>
+        
+        {/* Stars Background */}
+        <div className="absolute inset-0">
+          {[...Array(20)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-1 h-1 bg-white rounded-full animate-pulse"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 2}s`
+              }}
+            ></div>
+          ))}
+        </div>
+      </div>
+    )}
     
     {res && <div className="relative p-8 bg-gradient-to-br from-red-900/50 to-orange-900/50 rounded-3xl border-4 border-red-500 shadow-2xl overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-r from-red-500/20 to-orange-500/20 animate-pulse"></div>

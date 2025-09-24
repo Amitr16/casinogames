@@ -75,6 +75,85 @@ export default function RoulettePro({onDone}){
         </button>
       </div>
       
+      {/* Roulette Wheel Animation Area */}
+      {spinning && (
+        <div className="relative h-96 bg-gradient-to-br from-green-900 to-green-800 rounded-full border-8 border-yellow-500 shadow-2xl overflow-hidden mx-auto" style={{width: '384px', height: '384px'}}>
+          <div className="absolute inset-0 bg-gradient-to-r from-green-500/20 to-green-600/20 animate-pulse rounded-full"></div>
+          
+          {/* Spinning Wheel */}
+          <div 
+            className="absolute inset-4 rounded-full border-4 border-yellow-400 bg-gradient-to-br from-red-800 via-black to-red-800 shadow-inner"
+            style={{
+              transform: `rotate(${wheelRotation}deg)`,
+              animation: spinning ? 'wheelSpin 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards' : 'none',
+              background: `conic-gradient(
+                from 0deg,
+                #dc2626 0deg, #dc2626 9.73deg,
+                #000000 9.73deg, #000000 19.46deg,
+                #dc2626 19.46deg, #dc2626 29.19deg,
+                #000000 29.19deg, #000000 38.92deg,
+                #dc2626 38.92deg, #dc2626 48.65deg,
+                #000000 48.65deg, #000000 58.38deg,
+                #dc2626 58.38deg, #dc2626 68.11deg,
+                #000000 68.11deg, #000000 77.84deg,
+                #dc2626 77.84deg, #dc2626 87.57deg,
+                #000000 87.57deg, #000000 97.3deg,
+                #dc2626 97.3deg, #dc2626 107.03deg,
+                #000000 107.03deg, #000000 116.76deg,
+                #dc2626 116.76deg, #dc2626 126.49deg,
+                #000000 126.49deg, #000000 136.22deg,
+                #dc2626 136.22deg, #dc2626 145.95deg,
+                #000000 145.95deg, #000000 155.68deg,
+                #dc2626 155.68deg, #dc2626 165.41deg,
+                #000000 165.41deg, #000000 175.14deg,
+                #dc2626 175.14deg, #dc2626 184.87deg,
+                #000000 184.87deg, #000000 194.6deg,
+                #dc2626 194.6deg, #dc2626 204.33deg,
+                #000000 204.33deg, #000000 214.06deg,
+                #dc2626 214.06deg, #dc2626 223.79deg,
+                #000000 223.79deg, #000000 233.52deg,
+                #dc2626 233.52deg, #dc2626 243.25deg,
+                #000000 243.25deg, #000000 252.98deg,
+                #dc2626 252.98deg, #dc2626 262.71deg,
+                #000000 262.71deg, #000000 272.44deg,
+                #dc2626 272.44deg, #dc2626 282.17deg,
+                #000000 282.17deg, #000000 291.9deg,
+                #dc2626 291.9deg, #dc2626 301.63deg,
+                #000000 301.63deg, #000000 311.36deg,
+                #dc2626 311.36deg, #dc2626 321.09deg,
+                #000000 321.09deg, #000000 330.82deg,
+                #dc2626 330.82deg, #dc2626 340.55deg,
+                #000000 340.55deg, #000000 350.28deg,
+                #dc2626 350.28deg, #dc2626 360deg
+              )`
+            }}
+          >
+            {/* Wheel Numbers */}
+            {[0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26].map((num, i) => (
+              <div
+                key={num}
+                className="absolute text-white font-bold text-sm"
+                style={{
+                  transform: `rotate(${i * (360/37)}deg) translateY(-140px)`,
+                  transformOrigin: '50% 150px',
+                  color: num === 0 ? '#22c55e' : (num % 2 === 0 ? '#ffffff' : '#ffffff')
+                }}
+              >
+                {num}
+              </div>
+            ))}
+          </div>
+          
+          {/* Center Hub */}
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full border-4 border-yellow-300 shadow-lg flex items-center justify-center">
+            <div className="text-2xl">🎡</div>
+          </div>
+          
+          {/* Ball Pointer */}
+          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-white rounded-full shadow-lg border-2 border-gray-300 animate-bounce"></div>
+        </div>
+      )}
+      
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         <div className="xl:col-span-2 space-y-6">
           <div className="casino-felt p-6 rounded-3xl border-4 border-yellow-600 shadow-2xl">
