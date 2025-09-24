@@ -155,7 +155,7 @@ function RoulettePro({onDone}){
                     top: '50%',
                     left: '50%',
                     transformOrigin: '0 0',
-                    transform: `translate(-50%, -50%) rotate(${angle}deg) translate(0, -340px)`
+                    transform: `translate(-50%, -50%) rotate(${angle}deg) translate(0, -339px)`
                   }}>
                     {/* Colored Segment Background */}
                     <div style={{
@@ -163,7 +163,7 @@ function RoulettePro({onDone}){
                       height: '0',
                       borderLeft: '8px solid transparent',
                       borderRight: '8px solid transparent',
-                      borderBottom: `340px solid ${segmentColor}`,
+                      borderBottom: `339px solid ${segmentColor}`,
                       opacity: 0.9
                     }} />
                     
@@ -203,10 +203,10 @@ function RoulettePro({onDone}){
                     top: '50%',
                     left: '50%',
                     width: '3px',
-                    height: '360px',
+                    height: '359px',
                     background: 'linear-gradient(to bottom, #FFD700, #B8860B)',
-                    transformOrigin: '1.5px 180px',
-                    transform: `translate(-50%, -50%) rotate(${i * (360/37)}deg) translate(-1.5px, -180px)`,
+                    transformOrigin: '1.5px 179.5px',
+                    transform: `translate(-50%, -50%) rotate(${i * (360/37)}deg) translate(-1.5px, -179.5px)`,
                     zIndex: 5
                   }}
                 />
