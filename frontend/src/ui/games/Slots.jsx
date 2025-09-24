@@ -3,12 +3,25 @@ export default function Slots({onDone}){
   const api = window.CASINO_API
   const [stake,setStake]=useState(1)
   const [spinning,setSpinning]=useState(false)
+  const [reelStates,setReelStates]=useState([false, false, false, false, false])
   const [res,setRes]=useState(null)
   const spin = async()=>{
     setSpinning(true)
+    setReelStates([true, true, true, true, true])
+    
     const r = await fetch(`${api}/casino/slots/spin`, {method:'POST', headers:{'Content-Type':'application/json','X-User-Id':'demo-user'}, body: JSON.stringify({stake, currency:'USD'})})
     const j = await r.json()
-    setRes(j); setSpinning(false); onDone&&onDone()
+    setRes(j)
+    
+    setTimeout(() => setReelStates(prev => [false, ...prev.slice(1)]), 2000)
+    setTimeout(() => setReelStates(prev => [prev[0], false, ...prev.slice(2)]), 2500)
+    setTimeout(() => setReelStates(prev => [prev[0], prev[1], false, ...prev.slice(3)]), 3000)
+    setTimeout(() => setReelStates(prev => [prev[0], prev[1], prev[2], false, prev[4]]), 3500)
+    setTimeout(() => {
+      setReelStates([false, false, false, false, false])
+      setSpinning(false)
+      onDone&&onDone()
+    }, 4000)
   }
   const reels = res?.result?.reels || []
   return <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
@@ -166,8 +179,9 @@ export default function Slots({onDone}){
               style={{
                 display: 'flex',
                 flexDirection: 'column',
-                transition: 'all 3s ease-out',
-                transform: spinning ? 'translateY(-200%)' : 'translateY(0)'
+                transition: reelStates[ci] ? 'transform 0.1s linear' : 'transform 1s ease-out',
+                transform: reelStates[ci] ? 'translateY(-200%)' : 'translateY(0)',
+                animation: reelStates[ci] ? 'reelSpin 0.1s linear infinite' : 'none'
               }}
             >
               {col.map((s,ri)=>(
@@ -182,7 +196,7 @@ export default function Slots({onDone}){
                     fontSize: '3rem',
                     fontWeight: '900',
                     textShadow: '3px 3px 6px rgba(0,0,0,0.7)',
-                    filter: spinning ? 'blur(3px)' : 'blur(0px)',
+                    filter: reelStates[ci] ? 'blur(3px)' : 'blur(0px)',
                     background: 'rgba(255, 255, 255, 0.1)',
                     borderBottom: '1px solid rgba(255, 215, 0, 0.3)'
                   }}

@@ -170,15 +170,152 @@ export default function Blackjack({onDone}){
                         <div style={{ fontSize: '14px' }}>{suit}</div>
                       </div>
                       
-                      <div style={{
-                        fontSize: '36px',
-                        fontWeight: 'bold',
-                        textAlign: 'center',
-                        textShadow: '2px 2px 4px rgba(0,0,0,0.2)',
-                        color: cardColor
-                      }}>
-                        {suit}
-                      </div>
+                      {/* Realistic Card Content */}
+                      {(() => {
+                        const renderCardContent = (value, suit, cardColor) => {
+                          const numValue = parseInt(value);
+                          
+                          if (value === 'J' || value === 'Q' || value === 'K') {
+                            return (
+                              <div style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                height: '100%',
+                                fontSize: '28px',
+                                fontWeight: 'bold',
+                                color: cardColor
+                              }}>
+                                <div style={{ fontSize: '32px', marginBottom: '4px' }}>{value}</div>
+                                <div style={{ fontSize: '24px' }}>{suit}</div>
+                              </div>
+                            );
+                          }
+                          
+                          if (value === 'A') {
+                            return (
+                              <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                height: '100%',
+                                fontSize: '48px',
+                                fontWeight: 'bold',
+                                color: cardColor
+                              }}>
+                                {suit}
+                              </div>
+                            );
+                          }
+                          
+                          if (numValue >= 2 && numValue <= 10) {
+                            const suitPositions = [];
+                            const suitSize = '16px';
+                            
+                            if (numValue === 2) {
+                              suitPositions.push({ top: '25%', left: '50%' });
+                              suitPositions.push({ bottom: '25%', left: '50%', transform: 'rotate(180deg)' });
+                            } else if (numValue === 3) {
+                              suitPositions.push({ top: '20%', left: '50%' });
+                              suitPositions.push({ top: '50%', left: '50%' });
+                              suitPositions.push({ bottom: '20%', left: '50%', transform: 'rotate(180deg)' });
+                            } else if (numValue === 4) {
+                              suitPositions.push({ top: '25%', left: '30%' });
+                              suitPositions.push({ top: '25%', right: '30%' });
+                              suitPositions.push({ bottom: '25%', left: '30%', transform: 'rotate(180deg)' });
+                              suitPositions.push({ bottom: '25%', right: '30%', transform: 'rotate(180deg)' });
+                            } else if (numValue === 5) {
+                              suitPositions.push({ top: '20%', left: '30%' });
+                              suitPositions.push({ top: '20%', right: '30%' });
+                              suitPositions.push({ top: '50%', left: '50%' });
+                              suitPositions.push({ bottom: '20%', left: '30%', transform: 'rotate(180deg)' });
+                              suitPositions.push({ bottom: '20%', right: '30%', transform: 'rotate(180deg)' });
+                            } else if (numValue === 6) {
+                              suitPositions.push({ top: '20%', left: '30%' });
+                              suitPositions.push({ top: '20%', right: '30%' });
+                              suitPositions.push({ top: '50%', left: '30%' });
+                              suitPositions.push({ top: '50%', right: '30%' });
+                              suitPositions.push({ bottom: '20%', left: '30%', transform: 'rotate(180deg)' });
+                              suitPositions.push({ bottom: '20%', right: '30%', transform: 'rotate(180deg)' });
+                            } else if (numValue === 7) {
+                              suitPositions.push({ top: '18%', left: '30%' });
+                              suitPositions.push({ top: '18%', right: '30%' });
+                              suitPositions.push({ top: '35%', left: '50%' });
+                              suitPositions.push({ top: '50%', left: '30%' });
+                              suitPositions.push({ top: '50%', right: '30%' });
+                              suitPositions.push({ bottom: '18%', left: '30%', transform: 'rotate(180deg)' });
+                              suitPositions.push({ bottom: '18%', right: '30%', transform: 'rotate(180deg)' });
+                            } else if (numValue === 8) {
+                              suitPositions.push({ top: '18%', left: '30%' });
+                              suitPositions.push({ top: '18%', right: '30%' });
+                              suitPositions.push({ top: '35%', left: '50%' });
+                              suitPositions.push({ top: '50%', left: '30%' });
+                              suitPositions.push({ top: '50%', right: '30%' });
+                              suitPositions.push({ bottom: '35%', left: '50%', transform: 'rotate(180deg)' });
+                              suitPositions.push({ bottom: '18%', left: '30%', transform: 'rotate(180deg)' });
+                              suitPositions.push({ bottom: '18%', right: '30%', transform: 'rotate(180deg)' });
+                            } else if (numValue === 9) {
+                              suitPositions.push({ top: '15%', left: '30%' });
+                              suitPositions.push({ top: '15%', right: '30%' });
+                              suitPositions.push({ top: '32%', left: '30%' });
+                              suitPositions.push({ top: '32%', right: '30%' });
+                              suitPositions.push({ top: '50%', left: '50%' });
+                              suitPositions.push({ bottom: '32%', left: '30%', transform: 'rotate(180deg)' });
+                              suitPositions.push({ bottom: '32%', right: '30%', transform: 'rotate(180deg)' });
+                              suitPositions.push({ bottom: '15%', left: '30%', transform: 'rotate(180deg)' });
+                              suitPositions.push({ bottom: '15%', right: '30%', transform: 'rotate(180deg)' });
+                            } else if (numValue === 10) {
+                              suitPositions.push({ top: '15%', left: '30%' });
+                              suitPositions.push({ top: '15%', right: '30%' });
+                              suitPositions.push({ top: '30%', left: '50%' });
+                              suitPositions.push({ top: '40%', left: '30%' });
+                              suitPositions.push({ top: '40%', right: '30%' });
+                              suitPositions.push({ bottom: '40%', left: '30%', transform: 'rotate(180deg)' });
+                              suitPositions.push({ bottom: '40%', right: '30%', transform: 'rotate(180deg)' });
+                              suitPositions.push({ bottom: '30%', left: '50%', transform: 'rotate(180deg)' });
+                              suitPositions.push({ bottom: '15%', left: '30%', transform: 'rotate(180deg)' });
+                              suitPositions.push({ bottom: '15%', right: '30%', transform: 'rotate(180deg)' });
+                            }
+                            
+                            return (
+                              <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                                {suitPositions.map((pos, idx) => (
+                                  <div
+                                    key={idx}
+                                    style={{
+                                      position: 'absolute',
+                                      fontSize: suitSize,
+                                      fontWeight: 'bold',
+                                      color: cardColor,
+                                      transform: `translate(-50%, -50%) ${pos.transform || ''}`,
+                                      ...pos
+                                    }}
+                                  >
+                                    {suit}
+                                  </div>
+                                ))}
+                              </div>
+                            );
+                          }
+                          
+                          return (
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              height: '100%',
+                              fontSize: '36px',
+                              fontWeight: 'bold',
+                              color: cardColor
+                            }}>
+                              {suit}
+                            </div>
+                          );
+                        };
+                        
+                        return renderCardContent(value, suit, cardColor);
+                      })()}
                       
                       <div style={{
                         position: 'absolute',
@@ -291,15 +428,152 @@ export default function Blackjack({onDone}){
                         <div style={{ fontSize: '14px' }}>{suit}</div>
                       </div>
                       
-                      <div style={{
-                        fontSize: '36px',
-                        fontWeight: 'bold',
-                        textAlign: 'center',
-                        textShadow: '2px 2px 4px rgba(0,0,0,0.2)',
-                        color: cardColor
-                      }}>
-                        {suit}
-                      </div>
+                      {/* Realistic Card Content */}
+                      {(() => {
+                        const renderCardContent = (value, suit, cardColor) => {
+                          const numValue = parseInt(value);
+                          
+                          if (value === 'J' || value === 'Q' || value === 'K') {
+                            return (
+                              <div style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                height: '100%',
+                                fontSize: '28px',
+                                fontWeight: 'bold',
+                                color: cardColor
+                              }}>
+                                <div style={{ fontSize: '32px', marginBottom: '4px' }}>{value}</div>
+                                <div style={{ fontSize: '24px' }}>{suit}</div>
+                              </div>
+                            );
+                          }
+                          
+                          if (value === 'A') {
+                            return (
+                              <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                height: '100%',
+                                fontSize: '48px',
+                                fontWeight: 'bold',
+                                color: cardColor
+                              }}>
+                                {suit}
+                              </div>
+                            );
+                          }
+                          
+                          if (numValue >= 2 && numValue <= 10) {
+                            const suitPositions = [];
+                            const suitSize = '16px';
+                            
+                            if (numValue === 2) {
+                              suitPositions.push({ top: '25%', left: '50%' });
+                              suitPositions.push({ bottom: '25%', left: '50%', transform: 'rotate(180deg)' });
+                            } else if (numValue === 3) {
+                              suitPositions.push({ top: '20%', left: '50%' });
+                              suitPositions.push({ top: '50%', left: '50%' });
+                              suitPositions.push({ bottom: '20%', left: '50%', transform: 'rotate(180deg)' });
+                            } else if (numValue === 4) {
+                              suitPositions.push({ top: '25%', left: '30%' });
+                              suitPositions.push({ top: '25%', right: '30%' });
+                              suitPositions.push({ bottom: '25%', left: '30%', transform: 'rotate(180deg)' });
+                              suitPositions.push({ bottom: '25%', right: '30%', transform: 'rotate(180deg)' });
+                            } else if (numValue === 5) {
+                              suitPositions.push({ top: '20%', left: '30%' });
+                              suitPositions.push({ top: '20%', right: '30%' });
+                              suitPositions.push({ top: '50%', left: '50%' });
+                              suitPositions.push({ bottom: '20%', left: '30%', transform: 'rotate(180deg)' });
+                              suitPositions.push({ bottom: '20%', right: '30%', transform: 'rotate(180deg)' });
+                            } else if (numValue === 6) {
+                              suitPositions.push({ top: '20%', left: '30%' });
+                              suitPositions.push({ top: '20%', right: '30%' });
+                              suitPositions.push({ top: '50%', left: '30%' });
+                              suitPositions.push({ top: '50%', right: '30%' });
+                              suitPositions.push({ bottom: '20%', left: '30%', transform: 'rotate(180deg)' });
+                              suitPositions.push({ bottom: '20%', right: '30%', transform: 'rotate(180deg)' });
+                            } else if (numValue === 7) {
+                              suitPositions.push({ top: '18%', left: '30%' });
+                              suitPositions.push({ top: '18%', right: '30%' });
+                              suitPositions.push({ top: '35%', left: '50%' });
+                              suitPositions.push({ top: '50%', left: '30%' });
+                              suitPositions.push({ top: '50%', right: '30%' });
+                              suitPositions.push({ bottom: '18%', left: '30%', transform: 'rotate(180deg)' });
+                              suitPositions.push({ bottom: '18%', right: '30%', transform: 'rotate(180deg)' });
+                            } else if (numValue === 8) {
+                              suitPositions.push({ top: '18%', left: '30%' });
+                              suitPositions.push({ top: '18%', right: '30%' });
+                              suitPositions.push({ top: '35%', left: '50%' });
+                              suitPositions.push({ top: '50%', left: '30%' });
+                              suitPositions.push({ top: '50%', right: '30%' });
+                              suitPositions.push({ bottom: '35%', left: '50%', transform: 'rotate(180deg)' });
+                              suitPositions.push({ bottom: '18%', left: '30%', transform: 'rotate(180deg)' });
+                              suitPositions.push({ bottom: '18%', right: '30%', transform: 'rotate(180deg)' });
+                            } else if (numValue === 9) {
+                              suitPositions.push({ top: '15%', left: '30%' });
+                              suitPositions.push({ top: '15%', right: '30%' });
+                              suitPositions.push({ top: '32%', left: '30%' });
+                              suitPositions.push({ top: '32%', right: '30%' });
+                              suitPositions.push({ top: '50%', left: '50%' });
+                              suitPositions.push({ bottom: '32%', left: '30%', transform: 'rotate(180deg)' });
+                              suitPositions.push({ bottom: '32%', right: '30%', transform: 'rotate(180deg)' });
+                              suitPositions.push({ bottom: '15%', left: '30%', transform: 'rotate(180deg)' });
+                              suitPositions.push({ bottom: '15%', right: '30%', transform: 'rotate(180deg)' });
+                            } else if (numValue === 10) {
+                              suitPositions.push({ top: '15%', left: '30%' });
+                              suitPositions.push({ top: '15%', right: '30%' });
+                              suitPositions.push({ top: '30%', left: '50%' });
+                              suitPositions.push({ top: '40%', left: '30%' });
+                              suitPositions.push({ top: '40%', right: '30%' });
+                              suitPositions.push({ bottom: '40%', left: '30%', transform: 'rotate(180deg)' });
+                              suitPositions.push({ bottom: '40%', right: '30%', transform: 'rotate(180deg)' });
+                              suitPositions.push({ bottom: '30%', left: '50%', transform: 'rotate(180deg)' });
+                              suitPositions.push({ bottom: '15%', left: '30%', transform: 'rotate(180deg)' });
+                              suitPositions.push({ bottom: '15%', right: '30%', transform: 'rotate(180deg)' });
+                            }
+                            
+                            return (
+                              <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                                {suitPositions.map((pos, idx) => (
+                                  <div
+                                    key={idx}
+                                    style={{
+                                      position: 'absolute',
+                                      fontSize: suitSize,
+                                      fontWeight: 'bold',
+                                      color: cardColor,
+                                      transform: `translate(-50%, -50%) ${pos.transform || ''}`,
+                                      ...pos
+                                    }}
+                                  >
+                                    {suit}
+                                  </div>
+                                ))}
+                              </div>
+                            );
+                          }
+                          
+                          return (
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              height: '100%',
+                              fontSize: '36px',
+                              fontWeight: 'bold',
+                              color: cardColor
+                            }}>
+                              {suit}
+                            </div>
+                          );
+                        };
+                        
+                        return renderCardContent(value, suit, cardColor);
+                      })()}
                       
                       <div style={{
                         position: 'absolute',
