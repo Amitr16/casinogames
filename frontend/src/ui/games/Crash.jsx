@@ -7,11 +7,25 @@ export default function Crash({onDone}){
   const [isFlying,setIsFlying]=useState(false)
   const [currentMultiplier,setCurrentMultiplier]=useState(1.0)
   const [flightTime,setFlightTime]=useState(0)
+  const [cashedOut,setCashedOut]=useState(false)
+  const [cashoutMultiplier,setCashoutMultiplier]=useState(null)
+  const [showExplosion,setShowExplosion]=useState(false)
+  
+  const cashOut = () => {
+    if (isFlying && !cashedOut) {
+      setCashedOut(true)
+      setCashoutMultiplier(currentMultiplier)
+    }
+  }
+  
   const play= async()=>{
     setIsFlying(true)
     setCurrentMultiplier(1.0)
     setFlightTime(0)
     setRes(null)
+    setCashedOut(false)
+    setCashoutMultiplier(null)
+    setShowExplosion(false)
     
     const flightInterval = setInterval(() => {
       setCurrentMultiplier(prev => prev + 0.05)
@@ -22,11 +36,23 @@ export default function Crash({onDone}){
     
     setTimeout(async () => {
       clearInterval(flightInterval)
+      
+      if (!cashedOut) {
+        setShowExplosion(true)
+        setTimeout(() => setShowExplosion(false), 1000)
+      }
+      
       setIsFlying(false)
       setFlightTime(0)
       
       const r = await apiPromise
       const j = await r.json()
+      
+      if (cashedOut && cashoutMultiplier) {
+        j.payout = stake * cashoutMultiplier
+        j.result = { ...j.result, cashed_out: true, cashout_multiplier: cashoutMultiplier }
+      }
+      
       setRes(j)
       onDone&&onDone()
     }, 3000)
@@ -74,12 +100,44 @@ export default function Crash({onDone}){
         </span>
       </button>
       
-      <div className="flex flex-col items-center gap-3">
-        <label className="text-yellow-400 font-bold text-sm uppercase tracking-widest">Total Win</label>
-        <div className={`balance-display text-3xl font-black ${res?.payout > 0 ? 'animate-pulse-win' : ''}`}>
-          ${res?.payout?.toFixed(2)||'0.00'}
+      {/* Live Stake Display and Cashout Button */}
+      {isFlying && !cashedOut && (
+        <div className="flex flex-col items-center gap-3">
+          <label className="text-green-400 font-bold text-sm uppercase tracking-widest">Current Value</label>
+          <div className="balance-display text-3xl font-black text-green-400 animate-pulse">
+            ${(stake * currentMultiplier).toFixed(2)}
+          </div>
+          <button 
+            onClick={cashOut}
+            className="btn text-xl px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white border-2 border-green-400 animate-pulse"
+          >
+            💰 CASH OUT 💰
+          </button>
         </div>
-      </div>
+      )}
+      
+      {/* Cashed Out Display */}
+      {cashedOut && (
+        <div className="flex flex-col items-center gap-3">
+          <label className="text-green-400 font-bold text-sm uppercase tracking-widest">Cashed Out!</label>
+          <div className="balance-display text-3xl font-black text-green-400 animate-pulse-win">
+            ${(stake * cashoutMultiplier).toFixed(2)}
+          </div>
+          <div className="text-lg text-green-300 font-bold">
+            @ {cashoutMultiplier.toFixed(2)}x
+          </div>
+        </div>
+      )}
+      
+      {/* Final Result Display */}
+      {!isFlying && (
+        <div className="flex flex-col items-center gap-3">
+          <label className="text-yellow-400 font-bold text-sm uppercase tracking-widest">Total Win</label>
+          <div className={`balance-display text-3xl font-black ${res?.payout > 0 ? 'animate-pulse-win' : ''}`}>
+            ${res?.payout?.toFixed(2)||'0.00'}
+          </div>
+        </div>
+      )}
     </div>
     
     {/* Rocket Flight Animation Area */}
@@ -96,10 +154,11 @@ export default function Crash({onDone}){
         {/* Flying Rocket */}
         <div style={{
           position: 'absolute',
-          bottom: `${20 + Math.min(currentMultiplier * 15, 300)}px`,
-          left: `${Math.min(10 + flightTime * 25, 85)}%`,
+          bottom: `${20 + Math.min(currentMultiplier * 25, 350)}px`,
+          left: `${Math.min(5 + currentMultiplier * 12, 75)}%`,
           fontSize: '60px',
-          transition: 'all 0.1s ease-linear'
+          transition: 'all 0.1s ease-linear',
+          transform: 'rotate(45deg)'
         }}>
           🚀
         </div>
@@ -122,13 +181,28 @@ export default function Crash({onDone}){
         <div style={{
           position: 'absolute',
           bottom: '20px',
-          left: '10%',
-          width: `${Math.min(flightTime * 25, 75)}%`,
-          height: `${Math.min(currentMultiplier * 15, 300)}px`,
-          background: `linear-gradient(135deg, #f97316 0%, rgba(249, 115, 22, 0.8) 50%, transparent 100%)`,
-          opacity: 0.7,
-          clipPath: `polygon(0 100%, ${Math.min(flightTime * 2, 8)}px ${100 - Math.min(currentMultiplier * 0.8, 80)}%, ${Math.min(flightTime * 25, 75)}% ${100 - Math.min(currentMultiplier * 15, 300)/4}%, 0 100%)`
+          left: '5%',
+          width: `${Math.min(currentMultiplier * 12, 70)}%`,
+          height: `${Math.min(currentMultiplier * 25, 350)}px`,
+          background: `linear-gradient(45deg, #f97316 0%, rgba(249, 115, 22, 0.6) 30%, rgba(249, 115, 22, 0.3) 60%, transparent 100%)`,
+          opacity: 0.8,
+          clipPath: `polygon(0 100%, 6px 94%, ${Math.min(currentMultiplier * 12, 70)}% ${100 - Math.min(currentMultiplier * 22, 85)}%, ${Math.min(currentMultiplier * 8, 50)}% 100%)`
         }}></div>
+        
+        {/* Explosion Animation */}
+        {showExplosion && (
+          <div style={{
+            position: 'absolute',
+            bottom: `${20 + Math.min(currentMultiplier * 25, 350)}px`,
+            left: `${Math.min(5 + currentMultiplier * 12, 75)}%`,
+            transform: 'translate(-50%, 50%)',
+            fontSize: '120px',
+            animation: 'explosion 1s ease-out',
+            zIndex: 10
+          }}>
+            💥
+          </div>
+        )}
         
         {/* Stars Background */}
         <div style={{
@@ -207,8 +281,15 @@ export default function Crash({onDone}){
         <div className={`text-4xl font-black p-6 rounded-2xl ${
           res.payout > 0 ? 'text-green-400 bg-green-900/30 animate-pulse-win' : 'text-red-400 bg-red-900/30'
         }`}>
-          {res.payout > 0 ? '🎉 SUCCESSFUL FLIGHT! 🎉' : '💥 ROCKET CRASHED! 💥'}
+          {res.result?.cashed_out ? '💰 CASHED OUT SAFELY! 💰' : 
+           res.payout > 0 ? '🎉 SUCCESSFUL FLIGHT! 🎉' : '💥 ROCKET CRASHED! 💥'}
         </div>
+        
+        {res.result?.cashed_out && (
+          <div className="text-2xl text-green-400 font-bold bg-green-900/30 rounded-xl p-4 inline-block border-2 border-green-400 mt-4">
+            ✅ Cashed Out at: {res.result.cashout_multiplier?.toFixed(2)}x
+          </div>
+        )}
         
         {res.result?.multiplier >= 5 && (
           <div className="text-6xl font-black text-yellow-400 text-shadow-gold animate-jackpot mt-6">
