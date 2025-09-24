@@ -23,7 +23,7 @@ export default function Crash({onDone}){
       setIsFlying(false)
       setRes(j)
       onDone&&onDone()
-    }, 1000)
+    }, 3000)
   }
   return <div className="space-y-8">
     <div className="text-center mb-8">
