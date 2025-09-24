@@ -892,6 +892,27 @@
   100% { transform: rotate(360deg); }
 }
 
+/* Ball spinning around the wheel */
+@keyframes ballSpin {
+  0% { 
+    transform: translateX(-50%) rotate(0deg) translateX(200px) rotate(0deg);
+  }
+  100% { 
+    transform: translateX(-50%) rotate(1440deg) translateX(200px) rotate(-1440deg);
+  }
+}
+
+@keyframes ballBounce {
+  0%, 100% { 
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
+  }
+  50% { 
+    transform: translateX(-50%) scale(1.1);
+    opacity: 0.9;
+  }
+}
+
 /* TAILWIND DIRECTIVES AT END */
 @tailwind base;
 @tailwind components;
