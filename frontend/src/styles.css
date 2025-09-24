@@ -919,6 +919,34 @@
   100% { transform: translateY(-300%); }
 }
 
+/* Continuous Slot Reel Spinning Animation */
+@keyframes continuousReelSpin {
+  0% { transform: translateY(0px); }
+  100% { transform: translateY(-64px); }
+}
+
+/* Fast Reel Spinning with Motion Blur */
+@keyframes fastReelSpin {
+  0% { transform: translateY(0px); }
+  100% { transform: translateY(-64px); }
+}
+
+/* Motion Blur Overlay Effect */
+@keyframes motionBlur {
+  0% { 
+    transform: translateY(-20px);
+    opacity: 0.3;
+  }
+  50% { 
+    transform: translateY(0px);
+    opacity: 0.6;
+  }
+  100% { 
+    transform: translateY(20px);
+    opacity: 0.3;
+  }
+}
+
 /* TAILWIND DIRECTIVES AT END */
 @tailwind base;
 @tailwind components;

@@ -5,6 +5,9 @@ export default function Slots({onDone}){
   const [spinning,setSpinning]=useState(false)
   const [reelStates,setReelStates]=useState([false, false, false, false, false])
   const [res,setRes]=useState(null)
+  
+  const spinningSymbols = ['A', 'K', 'Q', 'J', '10', '9', '8', '7', '💎', '🍀', '⭐', '🎯']
+  
   const spin = async()=>{
     setSpinning(true)
     setReelStates([true, true, true, true, true])
@@ -173,38 +176,105 @@ export default function Slots({onDone}){
             borderRadius: '16px',
             border: '3px solid rgba(255, 215, 0, 0.7)',
             overflow: 'hidden',
-            boxShadow: 'inset 0 4px 20px rgba(0, 0, 0, 0.5)'
+            boxShadow: 'inset 0 4px 20px rgba(0, 0, 0, 0.5)',
+            position: 'relative'
           }}>
-            <div 
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                transition: reelStates[ci] ? 'transform 0.1s linear' : 'transform 1s ease-out',
-                transform: reelStates[ci] ? 'translateY(-200%)' : 'translateY(0)',
-                animation: reelStates[ci] ? 'reelSpin 0.1s linear infinite' : 'none'
-              }}
-            >
-              {col.map((s,ri)=>(
+            {reelStates[ci] ? (
+              <div 
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: '100%',
+                  overflow: 'hidden'
+                }}
+              >
                 <div 
-                  key={ri} 
                   style={{
-                    height: '64px',
-                    width: '100%',
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '3rem',
-                    fontWeight: '900',
-                    textShadow: '3px 3px 6px rgba(0,0,0,0.7)',
-                    filter: reelStates[ci] ? 'blur(3px)' : 'blur(0px)',
-                    background: 'rgba(255, 255, 255, 0.1)',
-                    borderBottom: '1px solid rgba(255, 215, 0, 0.3)'
+                    flexDirection: 'column',
+                    animation: 'fastReelSpin 0.05s linear infinite',
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0
                   }}
                 >
-                  {s}
+                  {[...Array(30)].map((_, idx) => (
+                    <div 
+                      key={idx} 
+                      style={{
+                        height: '64px',
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '3rem',
+                        fontWeight: '900',
+                        textShadow: '3px 3px 6px rgba(0,0,0,0.7)',
+                        filter: 'blur(4px) brightness(1.2)',
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        borderBottom: '1px solid rgba(255, 215, 0, 0.3)',
+                        opacity: 0.8
+                      }}
+                    >
+                      {spinningSymbols[idx % spinningSymbols.length]}
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+                
+                <div 
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: `
+                      linear-gradient(to bottom, 
+                        transparent 0%, 
+                        rgba(255, 255, 255, 0.1) 20%, 
+                        rgba(255, 255, 255, 0.2) 50%, 
+                        rgba(255, 255, 255, 0.1) 80%, 
+                        transparent 100%
+                      )
+                    `,
+                    animation: 'motionBlur 0.1s linear infinite',
+                    pointerEvents: 'none'
+                  }}
+                />
+              </div>
+            ) : (
+              <div 
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  transition: 'all 0.5s ease-out'
+                }}
+              >
+                {col.map((s,ri)=>(
+                  <div 
+                    key={ri} 
+                    style={{
+                      height: '64px',
+                      width: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '3rem',
+                      fontWeight: '900',
+                      textShadow: '3px 3px 6px rgba(0,0,0,0.7)',
+                      filter: 'blur(0px)',
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      borderBottom: '1px solid rgba(255, 215, 0, 0.3)'
+                    }}
+                  >
+                    {s}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -240,24 +310,44 @@ export default function Slots({onDone}){
     
     <div className="grid grid-cols-5 gap-4 text-center text-yellow-300">
       <div className="glass-effect p-4 rounded-xl hover:scale-105 transition-transform duration-300">
-        <div className="text-4xl mb-2">🍒</div>
-        <div className="font-semibold">Cherry</div>
-        <div className="text-yellow-400 font-bold">2x Payout</div>
+        <div className="text-4xl mb-2" style={{
+          fontFamily: 'serif',
+          fontWeight: 'bold',
+          color: '#FFD700',
+          textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
+        }}>A</div>
+        <div className="font-semibold">Ace</div>
+        <div className="text-yellow-400 font-bold">5x Payout</div>
       </div>
       <div className="glass-effect p-4 rounded-xl hover:scale-105 transition-transform duration-300">
-        <div className="text-4xl mb-2">🍋</div>
-        <div className="font-semibold">Lemon</div>
-        <div className="text-yellow-400 font-bold">3x Payout</div>
-      </div>
-      <div className="glass-effect p-4 rounded-xl hover:scale-105 transition-transform duration-300">
-        <div className="text-4xl mb-2">🍊</div>
-        <div className="font-semibold">Orange</div>
+        <div className="text-4xl mb-2" style={{
+          fontFamily: 'serif',
+          fontWeight: 'bold',
+          color: '#FFD700',
+          textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
+        }}>K</div>
+        <div className="font-semibold">King</div>
         <div className="text-yellow-400 font-bold">4x Payout</div>
       </div>
       <div className="glass-effect p-4 rounded-xl hover:scale-105 transition-transform duration-300">
-        <div className="text-4xl mb-2">🍇</div>
-        <div className="font-semibold">Grapes</div>
-        <div className="text-yellow-400 font-bold">5x Payout</div>
+        <div className="text-4xl mb-2" style={{
+          fontFamily: 'serif',
+          fontWeight: 'bold',
+          color: '#FFD700',
+          textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
+        }}>Q</div>
+        <div className="font-semibold">Queen</div>
+        <div className="text-yellow-400 font-bold">3x Payout</div>
+      </div>
+      <div className="glass-effect p-4 rounded-xl hover:scale-105 transition-transform duration-300">
+        <div className="text-4xl mb-2" style={{
+          fontFamily: 'serif',
+          fontWeight: 'bold',
+          color: '#FFD700',
+          textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
+        }}>J</div>
+        <div className="font-semibold">Jack</div>
+        <div className="text-yellow-400 font-bold">2x Payout</div>
       </div>
       <div className="glass-effect p-4 rounded-xl hover:scale-105 transition-transform duration-300">
         <div className="text-4xl mb-2">💎</div>
