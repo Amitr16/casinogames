@@ -13,11 +13,10 @@ def new_ref(prefix:str):
 SYMBOLS = ["A","K","Q","J","10","9","🍀","💎","⭐","7"]
 BASE_WEIGHTS = {"A":100,"K":100,"Q":100,"J":100,"10":100,"9":100,"🍀":50,"💎":25,"⭐":10,"7":5}
 PAYOUTS = {
-    "A":[0.2,0.6,2.0],"K":[0.2,0.6,2.0],"Q":[0.2,0.5,1.5],"J":[0.2,0.5,1.2],
-    "10":[0.1,0.4,1.0],"9":[0.1,0.4,1.0],"🍀":[0.5,2.0,5.0],"💎":[1.0,3.0,10.0],"⭐":[2.0,6.0,20.0],"7":[5.0,15.0,50.0]}
+    "A":[2.0,5.0,10.0],"K":[1.5,4.0,8.0],"Q":[1.2,3.0,6.0],"J":[1.0,2.5,5.0],
+    "10":[0.8,2.0,4.0],"9":[0.6,1.5,3.0],"🍀":[3.0,8.0,15.0],"💎":[5.0,12.0,25.0],"⭐":[8.0,20.0,40.0],"7":[15.0,35.0,100.0]}
 PAYLINES = [
-    [0,0,0,0,0],[1,1,1,1,1],[2,2,2,2,2],[0,1,2,1,0],[2,1,0,1,2],
-    [0,0,1,0,0],[2,2,1,2,2],[1,0,1,2,1],[1,2,1,0,1],[0,1,1,1,2],
+    [1,1,1,1,1]  # Only middle row (index 1) counts as winning payline
 ]
 
 def spin_reels(target_rtp:float)->List[List[str]]:
@@ -55,10 +54,11 @@ def evaluate_slots(reels:List[List[str]], stake:float)->Tuple[float, List[dict]]
 
 def roulette_spin(european:bool=True)->Dict:
     if european:
-        pockets = [str(i) for i in range(37)]
-        win = rng_choice(pockets)
-        color = "green" if win=="0" else ("red" if int(win) in {1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36} else "black")
-        return {"pocket":win,"color":color, "wheel":"european"}
+        # European roulette wheel order (same as frontend)
+        wheel_order = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26]
+        win = rng_choice(wheel_order)
+        color = "green" if win==0 else ("red" if win in {1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36} else "black")
+        return {"pocket":str(win),"color":color, "wheel":"european"}
     else:
         pockets = [str(i) for i in range(1,37)] + ["0","00"]
         win = rng_choice(pockets)

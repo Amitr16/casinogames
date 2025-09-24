@@ -931,6 +931,15 @@
   100% { transform: translateY(-64px); }
 }
 
+@keyframes gentleGlow {
+  0% { 
+    box-shadow: inset 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 10px rgba(255, 215, 0, 0.3);
+  }
+  100% { 
+    box-shadow: inset 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 20px rgba(255, 215, 0, 0.6);
+  }
+}
+
 /* Motion Blur Overlay Effect */
 @keyframes motionBlur {
   0% { 
@@ -954,20 +963,30 @@
     opacity: 1; 
     filter: brightness(2) hue-rotate(0deg);
   }
-  25% { 
+  15% { 
     transform: translate(-50%, 50%) scale(1.5); 
     opacity: 1; 
     filter: brightness(3) hue-rotate(45deg);
   }
-  50% { 
+  30% { 
     transform: translate(-50%, 50%) scale(2.0); 
-    opacity: 0.8; 
+    opacity: 0.9; 
     filter: brightness(4) hue-rotate(90deg);
   }
-  75% { 
+  50% { 
+    transform: translate(-50%, 50%) scale(2.2); 
+    opacity: 0.8; 
+    filter: brightness(3) hue-rotate(120deg);
+  }
+  70% { 
     transform: translate(-50%, 50%) scale(2.5); 
+    opacity: 0.6; 
+    filter: brightness(2) hue-rotate(150deg);
+  }
+  85% { 
+    transform: translate(-50%, 50%) scale(2.8); 
     opacity: 0.4; 
-    filter: brightness(2) hue-rotate(135deg);
+    filter: brightness(1.5) hue-rotate(170deg);
   }
   100% { 
     transform: translate(-50%, 50%) scale(3.0); 
@@ -976,7 +995,30 @@
   }
 }
 
+/* Confetti Animations */
+@keyframes confetti-fall {
+  0% {
+    transform: translateY(-100vh) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+@keyframes confetti-spin {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(1.2); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+.confetti-piece {
+  animation: confetti-fall 3s linear infinite, confetti-spin 2s ease-in-out infinite;
+}
+
 /* TAILWIND DIRECTIVES AT END */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+

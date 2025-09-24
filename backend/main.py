@@ -216,7 +216,8 @@ async def crash(req: StakeReq, user_id: str = Depends(get_current_user_id)):
         multiplier = crash_multiplier(conf.target_rtp)
         auto = req.params.get("auto_cashout", None)
         payout = 0.0
-        if auto and auto<=multiplier: payout = round(req.stake*auto,2)
+        # Auto cashout only triggers if the multiplier reached or exceeded the auto cashout value
+        if auto and multiplier >= auto: payout = round(req.stake*auto,2)
         result = {"multiplier":multiplier, "auto_cashout":auto}
         s.add(GameRound(game_key="crash", user_id=user_id, stake=req.stake, currency=req.currency, payout=payout, ref=ref, result_json=result))
         await s.commit()

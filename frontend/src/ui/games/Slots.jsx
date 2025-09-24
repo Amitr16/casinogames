@@ -26,7 +26,15 @@ export default function Slots({onDone}){
       onDone&&onDone()
     }, 4000)
   }
-  const reels = res?.result?.reels || []
+  // Default reels to show when no result yet
+  const defaultReels = [
+    ['A', 'K', 'Q'],
+    ['K', 'Q', 'J'], 
+    ['Q', 'J', '10'],
+    ['J', '10', '9'],
+    ['10', '9', '8']
+  ]
+  const reels = res?.result?.reels || defaultReels
   return <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
     <div style={{ textAlign: 'center', marginBottom: '32px' }}>
       <h2 style={{
@@ -250,7 +258,8 @@ export default function Slots({onDone}){
                 style={{
                   display: 'flex',
                   flexDirection: 'column',
-                  transition: 'all 0.5s ease-out'
+                  transition: 'all 0.5s ease-out',
+                  animation: res ? 'none' : 'gentleGlow 3s ease-in-out infinite alternate'
                 }}
               >
                 {col.map((s,ri)=>(
@@ -317,7 +326,7 @@ export default function Slots({onDone}){
           textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
         }}>A</div>
         <div className="font-semibold">Ace</div>
-        <div className="text-yellow-400 font-bold">5x Payout</div>
+        <div className="text-yellow-400 font-bold text-sm">3: 2x | 4: 5x | 5: 10x</div>
       </div>
       <div className="glass-effect p-4 rounded-xl hover:scale-105 transition-transform duration-300">
         <div className="text-4xl mb-2" style={{
@@ -327,7 +336,7 @@ export default function Slots({onDone}){
           textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
         }}>K</div>
         <div className="font-semibold">King</div>
-        <div className="text-yellow-400 font-bold">4x Payout</div>
+        <div className="text-yellow-400 font-bold text-sm">3: 1.5x | 4: 4x | 5: 8x</div>
       </div>
       <div className="glass-effect p-4 rounded-xl hover:scale-105 transition-transform duration-300">
         <div className="text-4xl mb-2" style={{
@@ -337,7 +346,7 @@ export default function Slots({onDone}){
           textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
         }}>Q</div>
         <div className="font-semibold">Queen</div>
-        <div className="text-yellow-400 font-bold">3x Payout</div>
+        <div className="text-yellow-400 font-bold text-sm">3: 1.2x | 4: 3x | 5: 6x</div>
       </div>
       <div className="glass-effect p-4 rounded-xl hover:scale-105 transition-transform duration-300">
         <div className="text-4xl mb-2" style={{
@@ -347,12 +356,12 @@ export default function Slots({onDone}){
           textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
         }}>J</div>
         <div className="font-semibold">Jack</div>
-        <div className="text-yellow-400 font-bold">2x Payout</div>
+        <div className="text-yellow-400 font-bold text-sm">3: 1x | 4: 2.5x | 5: 5x</div>
       </div>
       <div className="glass-effect p-4 rounded-xl hover:scale-105 transition-transform duration-300">
         <div className="text-4xl mb-2">💎</div>
         <div className="font-semibold">Diamond</div>
-        <div className="text-yellow-400 font-bold">10x Payout</div>
+        <div className="text-yellow-400 font-bold text-sm">3: 5x | 4: 12x | 5: 25x</div>
       </div>
     </div>
   </div>

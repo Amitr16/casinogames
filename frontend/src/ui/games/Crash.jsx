@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useLayoutEffect } from 'react'
 export default function Crash({onDone}){
   const api=window.CASINO_API
   const [stake,setStake]=useState(1)
@@ -11,10 +11,55 @@ export default function Crash({onDone}){
   const [cashoutMultiplier,setCashoutMultiplier]=useState(null)
   const [showExplosion,setShowExplosion]=useState(false)
   
+  // SVG trail refs and state
+  const containerRef = useRef(null)
+  const rocketRef = useRef(null)
+  const [trailPoints, setTrailPoints] = useState({ x0: 0, y0: 0, x1: 0, y1: 0 })
+  
+  // Set the fixed launch point once (10% from left, 20px from bottom)
+  useLayoutEffect(() => {
+    if (containerRef.current) {
+      const el = containerRef.current
+      const rect = el.getBoundingClientRect()
+      setTrailPoints(p => ({
+        ...p,
+        x0: rect.width * 0.10,
+        y0: rect.height - 20
+      }))
+    }
+  }, [])
+  
+  // Update the moving endpoint each frame
+  useLayoutEffect(() => {
+    if (!isFlying || !containerRef.current || !rocketRef.current) return
+    
+    let raf
+    const tick = () => {
+      if (containerRef.current && rocketRef.current) {
+        const c = containerRef.current.getBoundingClientRect()
+        const r = rocketRef.current.getBoundingClientRect()
+        // Bottom-center of rocket relative to container (this is where trail starts)
+        const bx = r.left + r.width / 2 - c.left
+        const by = r.top + r.height - c.top
+        // Trail extends backward from rocket engine
+        const trailLength = 60 // pixels
+        const angle = -45 * (Math.PI / 180) // -45 degrees in radians
+        const tx = bx + Math.cos(angle) * trailLength
+        const ty = by + Math.sin(angle) * trailLength
+        setTrailPoints(p => ({ x0: bx, y0: by, x1: tx, y1: ty }))
+        raf = requestAnimationFrame(tick)
+      }
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [isFlying])
+  
   const cashOut = () => {
     if (isFlying && !cashedOut) {
       setCashedOut(true)
       setCashoutMultiplier(currentMultiplier)
+      // Mark as manual cashout (will be handled in the timeout)
+      window.manualCashout = { cashedOut: true, multiplier: currentMultiplier }
     }
   }
   
@@ -27,35 +72,88 @@ export default function Crash({onDone}){
     setCashoutMultiplier(null)
     setShowExplosion(false)
     
+    // Get the crash result from backend first
+    const r = await fetch(`${api}/casino/crash/play`, {method:'POST', headers:{'Content-Type':'application/json','X-User-Id':'demo-user'}, body: JSON.stringify({stake, currency:'USD', params:{auto_cashout:auto}})})
+    const j = await r.json()
+    const actualCrashMultiplier = j.result?.multiplier || 1.01
+    
+    let autoCashedOut = false
+    let manualCashedOut = false
+    
     const flightInterval = setInterval(() => {
-      setCurrentMultiplier(prev => prev + 0.05)
+      setCurrentMultiplier(prev => {
+        const newMultiplier = prev + 0.05
+        
+        // Check for auto cashout trigger
+        if (!autoCashedOut && !manualCashedOut && auto && newMultiplier >= auto) {
+          autoCashedOut = true
+          setCashedOut(true)
+          setCashoutMultiplier(auto)
+          // Update the result to show auto cashout
+          j.payout = stake * auto
+          j.result = { ...j.result, auto_cashed_out: true, auto_cashout_multiplier: auto }
+          // Stop the animation immediately when auto cashout triggers
+          clearInterval(flightInterval)
+          setTimeout(() => {
+            setIsFlying(false)
+            setFlightTime(0)
+            setRes(j)
+            onDone&&onDone()
+          }, 500) // Brief pause to show the auto cashout moment
+          return auto // Stop at auto cashout value
+        }
+        
+        return newMultiplier
+      })
       setFlightTime(prev => prev + 0.1)
     }, 100)
     
-    const apiPromise = fetch(`${api}/casino/crash/play`, {method:'POST', headers:{'Content-Type':'application/json','X-User-Id':'demo-user'}, body: JSON.stringify({stake, currency:'USD', params:{auto_cashout:auto}})})
+    // Calculate flight duration based on actual crash multiplier (but cap it)
+    const flightDuration = Math.min(actualCrashMultiplier * 1000, 5000) // Max 5 seconds
     
-    setTimeout(async () => {
-      clearInterval(flightInterval)
-      
-      if (!cashedOut) {
-        setShowExplosion(true)
-        setTimeout(() => setShowExplosion(false), 1000)
+    setTimeout(() => {
+      // Only run this if auto cashout didn't already trigger
+      if (!autoCashedOut) {
+        clearInterval(flightInterval)
+        
+        // Stop at actual crash multiplier if not already cashed out
+        if (!manualCashedOut) {
+          setCurrentMultiplier(actualCrashMultiplier)
+          setShowExplosion(true)
+          
+          // Hold explosion for 3 seconds before showing result
+          setTimeout(() => {
+            setShowExplosion(false)
+            setIsFlying(false)
+            setFlightTime(0)
+            
+            // If manual cashout happened, override the result
+            if (window.manualCashout?.cashedOut) {
+              j.payout = stake * window.manualCashout.multiplier
+              j.result = { ...j.result, manual_cashed_out: true, manual_cashout_multiplier: window.manualCashout.multiplier }
+              window.manualCashout = null // Clean up
+            }
+            
+            setRes(j)
+            onDone&&onDone()
+          }, 3000) // Hold explosion for 3 seconds
+        } else {
+          // For manual cashouts, transition immediately
+          setIsFlying(false)
+          setFlightTime(0)
+          
+          // If manual cashout happened, override the result
+          if (window.manualCashout?.cashedOut) {
+            j.payout = stake * window.manualCashout.multiplier
+            j.result = { ...j.result, manual_cashed_out: true, manual_cashout_multiplier: window.manualCashout.multiplier }
+            window.manualCashout = null // Clean up
+          }
+          
+          setRes(j)
+          onDone&&onDone()
+        }
       }
-      
-      setIsFlying(false)
-      setFlightTime(0)
-      
-      const r = await apiPromise
-      const j = await r.json()
-      
-      if (cashedOut && cashoutMultiplier) {
-        j.payout = stake * cashoutMultiplier
-        j.result = { ...j.result, cashed_out: true, cashout_multiplier: cashoutMultiplier }
-      }
-      
-      setRes(j)
-      onDone&&onDone()
-    }, 3000)
+    }, flightDuration)
   }
   return <div className="space-y-8">
     <div className="text-center mb-8">
@@ -142,24 +240,56 @@ export default function Crash({onDone}){
     
     {/* Rocket Flight Animation Area */}
     {isFlying && (
-      <div style={{
-        position: 'relative',
-        height: '400px',
-        background: 'linear-gradient(to bottom, #1e3a8a, #581c87)',
-        borderRadius: '24px',
-        border: '4px solid #eab308',
-        overflow: 'hidden',
-        margin: '20px 0'
-      }}>
-        {/* Flying Rocket */}
-        <div style={{
-          position: 'absolute',
-          bottom: `${20 + Math.min(currentMultiplier * 25, 350)}px`,
-          left: `${Math.min(5 + currentMultiplier * 12, 75)}%`,
-          fontSize: '60px',
-          transition: 'all 0.1s ease-linear',
-          transform: 'rotate(45deg)'
+      <div 
+        ref={containerRef}
+        style={{
+          position: 'relative',
+          height: '400px',
+          background: 'linear-gradient(to bottom, #1e3a8a, #581c87)',
+          borderRadius: '24px',
+          border: '4px solid #eab308',
+          overflow: 'hidden',
+          margin: '20px 0'
         }}>
+        {/* SVG Trail Overlay */}
+        <svg width="100%" height="100%" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 1 }}>
+          <defs>
+            <linearGradient id="trail" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#ff6b35" stopOpacity="0.9" />
+              <stop offset="50%" stopColor="#ff8c42" stopOpacity="0.7" />
+              <stop offset="100%" stopColor="#ffa726" stopOpacity="0.3" />
+            </linearGradient>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="3" result="b" />
+              <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+          {/* Dynamic trail line */}
+          <line 
+            x1={trailPoints.x0} 
+            y1={trailPoints.y0} 
+            x2={trailPoints.x1} 
+            y2={trailPoints.y1}
+            stroke="url(#trail)" 
+            strokeWidth="8" 
+            strokeLinecap="round"
+            filter="url(#glow)" 
+          />
+        </svg>
+        
+        {/* Flying Rocket */}
+        <div 
+          ref={rocketRef}
+          style={{
+            position: 'absolute',
+            bottom: `${20 + Math.min(currentMultiplier * 35, 380)}px`,
+            left: `${Math.min(10 + currentMultiplier * 8, 60)}%`,
+            fontSize: '60px',
+            transition: 'all 0.1s ease-linear',
+            transform: 'rotate(-15deg)',
+            display: 'inline-block',
+            zIndex: 2
+          }}>
           🚀
         </div>
         
@@ -177,31 +307,49 @@ export default function Crash({onDone}){
           {currentMultiplier.toFixed(2)}x
         </div>
         
-        {/* Diagonal Flight Trail */}
-        <div style={{
-          position: 'absolute',
-          bottom: '20px',
-          left: '5%',
-          width: `${Math.min(currentMultiplier * 12, 70)}%`,
-          height: `${Math.min(currentMultiplier * 25, 350)}px`,
-          background: `linear-gradient(45deg, #f97316 0%, rgba(249, 115, 22, 0.6) 30%, rgba(249, 115, 22, 0.3) 60%, transparent 100%)`,
-          opacity: 0.8,
-          clipPath: `polygon(0 100%, 6px 94%, ${Math.min(currentMultiplier * 12, 70)}% ${100 - Math.min(currentMultiplier * 22, 85)}%, ${Math.min(currentMultiplier * 8, 50)}% 100%)`
-        }}></div>
-        
         {/* Explosion Animation */}
         {showExplosion && (
           <div style={{
             position: 'absolute',
-            bottom: `${20 + Math.min(currentMultiplier * 25, 350)}px`,
-            left: `${Math.min(5 + currentMultiplier * 12, 75)}%`,
+            bottom: `${20 + Math.min(currentMultiplier * 35, 380) + 40}px`,
+            left: `${Math.min(10 + currentMultiplier * 8, 60)}%`,
             transform: 'translate(-50%, 50%)',
             fontSize: '120px',
-            animation: 'explosion 1s ease-out',
+            animation: 'explosion 3s ease-out',
             zIndex: 10
           }}>
             💥
           </div>
+        )}
+        
+        {/* Additional explosion effects during crash */}
+        {showExplosion && (
+          <>
+            <div style={{
+              position: 'absolute',
+              bottom: `${20 + Math.min(currentMultiplier * 35, 380) + 40}px`,
+              left: `${Math.min(10 + currentMultiplier * 8, 60)}%`,
+              transform: 'translate(-50%, 50%)',
+              fontSize: '80px',
+              animation: 'explosion 3s ease-out 0.2s',
+              zIndex: 9,
+              opacity: 0.8
+            }}>
+              💥
+            </div>
+            <div style={{
+              position: 'absolute',
+              bottom: `${20 + Math.min(currentMultiplier * 35, 380) + 40}px`,
+              left: `${Math.min(10 + currentMultiplier * 8, 60)}%`,
+              transform: 'translate(-50%, 50%)',
+              fontSize: '60px',
+              animation: 'explosion 3s ease-out 0.4s',
+              zIndex: 8,
+              opacity: 0.6
+            }}>
+              💥
+            </div>
+          </>
         )}
         
         {/* Stars Background */}
@@ -261,19 +409,37 @@ export default function Crash({onDone}){
     {res && <div className="relative p-8 bg-gradient-to-br from-red-900/50 to-orange-900/50 rounded-3xl border-4 border-red-500 shadow-2xl overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-r from-red-500/20 to-orange-500/20 animate-pulse"></div>
       <div className="relative z-10 text-center">
-        <div className="text-3xl font-bold text-yellow-400 mb-6 text-shadow-gold">🚀 CRASH RESULT 🚀</div>
+        <div className="text-3xl font-bold text-yellow-400 mb-6 text-shadow-gold">
+          {res.result?.auto_cashed_out ? '🎯 AUTO CASHOUT RESULT 🎯' :
+           res.result?.manual_cashed_out ? '🎯 CASHOUT RESULT 🎯' :
+           '🚀 CRASH RESULT 🚀'}
+        </div>
         
         <div className="mb-8">
           <div className={`text-8xl font-black mb-4 ${
             res.result?.multiplier >= 2 ? 'text-green-400 animate-pulse-win' : 
             res.result?.multiplier >= 1.5 ? 'text-yellow-400' : 'text-red-400'
           }`}>
-            {res.result?.multiplier?.toFixed(2)}x
+            {/* Show the relevant multiplier based on what actually happened */}
+            {res.result?.auto_cashed_out ? res.result.auto_cashout_multiplier?.toFixed(2) + 'x' :
+             res.result?.manual_cashed_out ? res.result.manual_cashout_multiplier?.toFixed(2) + 'x' :
+             res.result?.multiplier?.toFixed(2) + 'x'}
           </div>
           
-          {res.result?.auto_cashout && (
-            <div className="text-2xl text-green-400 font-bold bg-green-900/30 rounded-xl p-4 inline-block border-2 border-green-400">
-              ✅ Auto Cashout: {res.result.auto_cashout}x
+          {res.result?.auto_cashed_out && (
+            <div className="space-y-2">
+              <div className="text-2xl text-green-400 font-bold bg-green-900/30 rounded-xl p-4 inline-block border-2 border-green-400">
+                ✅ Auto Cashout: {res.result.auto_cashout_multiplier?.toFixed(2)}x
+              </div>
+              <div className="text-lg text-gray-400 font-semibold">
+                💥 Would have crashed at: {res.result?.multiplier?.toFixed(2)}x
+              </div>
+            </div>
+          )}
+          
+          {res.result?.manual_cashed_out && (
+            <div className="text-2xl text-blue-400 font-bold bg-blue-900/30 rounded-xl p-4 inline-block border-2 border-blue-400">
+              🎯 Manual Cashout: {res.result.manual_cashout_multiplier?.toFixed(2)}x
             </div>
           )}
         </div>
@@ -281,15 +447,10 @@ export default function Crash({onDone}){
         <div className={`text-4xl font-black p-6 rounded-2xl ${
           res.payout > 0 ? 'text-green-400 bg-green-900/30 animate-pulse-win' : 'text-red-400 bg-red-900/30'
         }`}>
-          {res.result?.cashed_out ? '💰 CASHED OUT SAFELY! 💰' : 
+          {res.result?.auto_cashed_out ? '✅ AUTO CASHOUT TRIGGERED! ✅' :
+           res.result?.manual_cashed_out ? '🎯 MANUAL CASHOUT SUCCESS! 🎯' : 
            res.payout > 0 ? '🎉 SUCCESSFUL FLIGHT! 🎉' : '💥 ROCKET CRASHED! 💥'}
         </div>
-        
-        {res.result?.cashed_out && (
-          <div className="text-2xl text-green-400 font-bold bg-green-900/30 rounded-xl p-4 inline-block border-2 border-green-400 mt-4">
-            ✅ Cashed Out at: {res.result.cashout_multiplier?.toFixed(2)}x
-          </div>
-        )}
         
         {res.result?.multiplier >= 5 && (
           <div className="text-6xl font-black text-yellow-400 text-shadow-gold animate-jackpot mt-6">
