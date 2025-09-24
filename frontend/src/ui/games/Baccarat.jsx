@@ -10,24 +10,48 @@ export default function Baccarat({onDone}){
     const r = await fetch(`${api}/casino/baccarat/play`, {method:'POST', headers:{'Content-Type':'application/json','X-User-Id':'demo-user'}, body: JSON.stringify({stake, currency:'USD', params:{bet_on:side}})})
     const j = await r.json(); setRes(j); setEntries(prev=>[{winner:j.result.winner}, ...prev].slice(0,144)); onDone&&onDone()
   }
-  return <div className="grid grid-cols-2 gap-4">
-    <div>
-      <div className="flex gap-2 items-center mb-3">
-        <input className="input" type="number" min="1" value={stake} onChange={e=>setStake(parseFloat(e.target.value||'1'))}/>
-        <select className="input" value={side} onChange={e=>setSide(e.target.value)}>
-          <option value="player">Player</option><option value="banker">Banker</option><option value="tie">Tie</option>
-        </select>
-        <button className="btn-primary" onClick={play}>Play</button>
-        <div className="text-sm opacity-60">Payout: ${res?.payout?.toFixed(2)||'0.00'}</div>
-      </div>
-      {res && <div className="space-y-2">
-        <div>Player: {res.result.player?.join(' ')}</div>
-        <div>Banker: {res.result.banker?.join(' ')}</div>
-        <div>Winner: {res.result.winner}</div>
-      </div>}
+  return <div className="space-y-6">
+    <div className="flex gap-4 items-center justify-center p-4 bg-gradient-to-r from-green-700 to-green-800 rounded-xl border-2 border-yellow-400">
+      <input type="number" value={stake} onChange={e=>setStake(+e.target.value)} className="input w-24" placeholder="Stake" />
+      <select value={side} onChange={e=>setSide(e.target.value)} className="input w-32">
+        <option value="player">Player</option>
+        <option value="banker">Banker</option>
+        <option value="tie">Tie</option>
+      </select>
+      <button onClick={play} className="btn-primary">🎯 Play</button>
+      <div className="text-xl font-bold text-yellow-400">Payout: <span className="font-mono">${res?.payout?.toFixed(2)||'0.00'}</span></div>
     </div>
+    {res && <div className="p-6 bg-gradient-to-br from-gray-700 to-gray-800 rounded-xl border-2 border-white/20 shadow-lg">
+      <div className="grid grid-cols-2 gap-6">
+        <div className="text-center">
+          <div className="text-yellow-400 font-bold text-lg mb-2">Player Cards</div>
+          <div className="flex gap-2 justify-center">
+            {res.result?.player?.map((card, i) => (
+              <div key={i} className="w-12 h-16 bg-white rounded-lg shadow-lg border-2 border-gray-300 flex items-center justify-center text-lg font-bold animate-card-deal">
+                {card}
+              </div>
+            ))}
+          </div>
+          <div className="text-white font-semibold mt-2">Total: {res.result?.player_total}</div>
+        </div>
+        <div className="text-center">
+          <div className="text-yellow-400 font-bold text-lg mb-2">Banker Cards</div>
+          <div className="flex gap-2 justify-center">
+            {res.result?.banker?.map((card, i) => (
+              <div key={i} className="w-12 h-16 bg-white rounded-lg shadow-lg border-2 border-gray-300 flex items-center justify-center text-lg font-bold animate-card-deal">
+                {card}
+              </div>
+            ))}
+          </div>
+          <div className="text-white font-semibold mt-2">Total: {res.result?.banker_total}</div>
+        </div>
+      </div>
+      <div className="text-center mt-4">
+        <div className="text-2xl font-bold text-yellow-400">Winner: <span className="text-white capitalize">{res.result?.winner}</span></div>
+      </div>
+    </div>}
     <div>
-      <div className="text-sm opacity-70 mb-2">Roadmaps</div>
+      <div className="text-xl mb-3 text-yellow-400 font-bold text-center">Baccarat Roadmaps</div>
       <BaccaratRoadmaps entries={entries}/>
     </div>
   </div>

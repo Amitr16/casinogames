@@ -33,10 +33,28 @@ export default function Blackjack({onDone}){
         <BlackjackAdvanced allowed={allowed} onAction={name=>call(name)}/>
         <div className="text-sm opacity-60">Paid: ${res?.payout?.toFixed(2)||'0.00'}</div>
       </div>
-      {state && <div className="space-y-2">
-        <div>Dealer: {Array.isArray(state.dealer)? state.dealer.join(' ') : ''}</div>
-        <div>Player: {state.player?.join(' ')}</div>
-        <div>Total P/D: {state.pv} / {state.dv}</div>
+      {state && <div className="space-y-6 p-6 bg-green-800 rounded-2xl shadow-2xl border-4 border-yellow-600">
+        <div className="flex gap-4 items-center">
+          <span className="text-yellow-400 font-bold text-lg">Dealer:</span>
+          <div className="flex gap-2">
+            {Array.isArray(state.dealer) && state.dealer.map((card, i) => (
+              <div key={i} className="w-12 h-16 bg-white rounded-lg shadow-lg border-2 border-gray-300 flex items-center justify-center text-lg font-bold transform hover:scale-105 transition-transform animate-card-deal">
+                {card}
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="flex gap-4 items-center">
+          <span className="text-yellow-400 font-bold text-lg">Player:</span>
+          <div className="flex gap-2">
+            {state.player?.map((card, i) => (
+              <div key={i} className="w-12 h-16 bg-white rounded-lg shadow-lg border-2 border-gray-300 flex items-center justify-center text-lg font-bold transform hover:scale-105 transition-transform animate-card-deal">
+                {card}
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="text-yellow-400 font-semibold text-lg">Total P/D: <span className="font-mono">{state.pv} / {state.dv}</span></div>
       </div>}
     </div>
   )

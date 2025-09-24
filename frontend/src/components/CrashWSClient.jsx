@@ -12,5 +12,12 @@ export default function CrashWSClient({wsUrl}){
     }
     return ()=>ws.close()
   },[wsUrl])
-  return <div className="p-3 bg-white/10 rounded-2xl">x{ x.toFixed(2) } {crashed && '— CRASH!'}</div>
+  return <div className="p-6 bg-gradient-to-r from-red-900 to-orange-900 rounded-2xl border-2 border-red-600 shadow-2xl">
+    <div className="text-4xl font-bold text-center">
+      <span className={`${crashed ? 'text-red-400 animate-pulse' : 'text-green-400'} transition-all duration-300`}>
+        {x.toFixed(2)}x
+      </span>
+      {crashed && <div className="text-red-500 text-2xl mt-2 animate-bounce">💥 CRASHED!</div>}
+    </div>
+  </div>
 }
