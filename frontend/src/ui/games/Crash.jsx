@@ -15,12 +15,14 @@ export default function Crash({onDone}){
       setCurrentMultiplier(prev => prev + 0.05)
     }, 100)
     
-    const r = await fetch(`${api}/casino/crash/play`, {method:'POST', headers:{'Content-Type':'application/json','X-User-Id':'demo-user'}, body: JSON.stringify({stake, currency:'USD', params:{auto_cashout:auto}})})
-    const j = await r.json()
+    const apiPromise = fetch(`${api}/casino/crash/play`, {method:'POST', headers:{'Content-Type':'application/json','X-User-Id':'demo-user'}, body: JSON.stringify({stake, currency:'USD', params:{auto_cashout:auto}})})
     
-    clearInterval(flightInterval)
-    setTimeout(() => {
+    setTimeout(async () => {
+      clearInterval(flightInterval)
       setIsFlying(false)
+      
+      const r = await apiPromise
+      const j = await r.json()
       setRes(j)
       onDone&&onDone()
     }, 3000)
@@ -78,48 +80,104 @@ export default function Crash({onDone}){
     
     {/* Rocket Flight Animation Area */}
     {isFlying && (
-      <div className="relative h-96 bg-gradient-to-b from-blue-900 to-purple-900 rounded-3xl border-4 border-yellow-500 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 animate-pulse"></div>
-        
+      <div style={{
+        position: 'relative',
+        height: '400px',
+        background: 'linear-gradient(to bottom, #1e3a8a, #581c87)',
+        borderRadius: '24px',
+        border: '4px solid #eab308',
+        overflow: 'hidden',
+        margin: '20px 0'
+      }}>
         {/* Flying Rocket */}
-        <div 
-          className="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-6xl transition-all duration-100 ease-linear"
-          style={{
-            transform: `translateX(-50%) translateY(-${Math.min(currentMultiplier * 20, 320)}px)`,
-            animation: 'rocketFly 0.1s ease-in-out infinite alternate'
-          }}
-        >
+        <div style={{
+          position: 'absolute',
+          bottom: '20px',
+          left: '50%',
+          transform: `translateX(-50%) translateY(-${Math.min(currentMultiplier * 15, 300)}px)`,
+          fontSize: '60px',
+          transition: 'transform 0.1s ease-linear'
+        }}>
           🚀
         </div>
         
         {/* Multiplier Display */}
-        <div className="absolute top-8 left-1/2 transform -translate-x-1/2 text-6xl font-black text-yellow-400 text-shadow-gold animate-pulse">
+        <div style={{
+          position: 'absolute',
+          top: '30px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          fontSize: '48px',
+          fontWeight: 'bold',
+          color: '#fbbf24',
+          textShadow: '2px 2px 4px rgba(0,0,0,0.8)'
+        }}>
           {currentMultiplier.toFixed(2)}x
         </div>
         
         {/* Flight Trail */}
-        <div 
-          className="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-2 bg-gradient-to-t from-orange-500 to-transparent opacity-70"
-          style={{
-            height: `${Math.min(currentMultiplier * 20, 320)}px`,
-            animation: 'trailGlow 0.5s ease-in-out infinite alternate'
-          }}
-        ></div>
+        <div style={{
+          position: 'absolute',
+          bottom: '20px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          width: '4px',
+          height: `${Math.min(currentMultiplier * 15, 300)}px`,
+          background: 'linear-gradient(to top, #f97316, transparent)',
+          opacity: 0.8
+        }}></div>
         
         {/* Stars Background */}
-        <div className="absolute inset-0">
-          {[...Array(20)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute w-1 h-1 bg-white rounded-full animate-pulse"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 2}s`
-              }}
-            ></div>
-          ))}
-        </div>
+        <div style={{
+          position: 'absolute',
+          top: '10%',
+          left: '10%',
+          width: '4px',
+          height: '4px',
+          backgroundColor: 'white',
+          borderRadius: '50%',
+          opacity: 0.8
+        }}></div>
+        <div style={{
+          position: 'absolute',
+          top: '20%',
+          right: '15%',
+          width: '3px',
+          height: '3px',
+          backgroundColor: 'white',
+          borderRadius: '50%',
+          opacity: 0.6
+        }}></div>
+        <div style={{
+          position: 'absolute',
+          top: '40%',
+          left: '20%',
+          width: '2px',
+          height: '2px',
+          backgroundColor: 'white',
+          borderRadius: '50%',
+          opacity: 0.7
+        }}></div>
+        <div style={{
+          position: 'absolute',
+          top: '60%',
+          right: '25%',
+          width: '3px',
+          height: '3px',
+          backgroundColor: 'white',
+          borderRadius: '50%',
+          opacity: 0.5
+        }}></div>
+        <div style={{
+          position: 'absolute',
+          top: '15%',
+          left: '70%',
+          width: '2px',
+          height: '2px',
+          backgroundColor: 'white',
+          borderRadius: '50%',
+          opacity: 0.8
+        }}></div>
       </div>
     )}
     
