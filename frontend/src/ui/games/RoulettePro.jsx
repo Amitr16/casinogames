@@ -107,149 +107,170 @@ function RoulettePro({onDone}){
         boxShadow: '0 0 120px rgba(255, 215, 0, 0.9), inset 0 0 80px rgba(0,0,0,0.6)',
         overflow: 'visible'
       }}>
-        {/* Outer Ring */}
+        {/* Rotating Container - All elements rotate together */}
         <div style={{
           position: 'absolute',
-          inset: '50px',
-          borderRadius: '50%',
-          border: '20px solid #B8860B',
-          background: 'radial-gradient(circle, #DAA520 0%, #B8860B 100%)',
-          boxShadow: 'inset 0 0 50px rgba(0,0,0,0.4)',
-          transform: `rotate(${wheelRotation}deg)`,
+          top: '50%',
+          left: '50%',
+          width: '900px',
+          height: '900px',
+          transform: `translate(-50%, -50%) rotate(${wheelRotation}deg)`,
           transition: spinning ? 'transform 3s cubic-bezier(0.25, 0.46, 0.45, 0.94)' : 'none'
         }}>
-          {/* Main Wheel with Numbers */}
-          <div style={{
-            position: 'absolute',
-            inset: '40px',
-            borderRadius: '50%',
-            background: '#2F1B14',
-            border: '10px solid #FFD700',
-            boxShadow: 'inset 0 0 40px rgba(0,0,0,0.8), 0 0 30px rgba(255,215,0,0.6)'
-          }}>
-            {/* Number Segments - Combined colored background and number display */}
-            {[0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26].map((num, i) => {
-              const isRed = [1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36].includes(num);
-              const angle = i * (360/37);
-              const segmentColor = num === 0 ? '#228B22' : isRed ? '#DC143C' : '#000000';
-              
-              return (
-                <div key={num} style={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  transformOrigin: '0 0',
-                  transform: `translate(-50%, -50%) rotate(${angle}deg) translate(0, -350px)`
-                }}>
-                  {/* Colored Segment Background */}
-                  <div style={{
-                    width: '0',
-                    height: '0',
-                    borderLeft: '8px solid transparent',
-                    borderRight: '8px solid transparent',
-                    borderBottom: `350px solid ${segmentColor}`,
-                    opacity: 0.9
-                  }} />
-                  
-                  {/* Number Display - positioned relative to segment */}
-                  <div style={{
-                    position: 'absolute',
-                    top: '70px',
-                    left: '50%',
-                    transform: `translateX(-50%) rotate(${-angle}deg)`,
-                    color: '#FFFFFF',
-                    fontSize: '18px',
-                    fontWeight: '900',
-                    textShadow: '3px 3px 6px rgba(0,0,0,0.9)',
-                    background: `radial-gradient(circle, ${segmentColor}, ${segmentColor === '#228B22' ? '#006400' : segmentColor === '#DC143C' ? '#8B0000' : '#000000'})`,
-                    width: '35px',
-                    height: '25px',
-                    borderRadius: '6px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    border: '2px solid #FFD700',
-                    boxShadow: '0 3px 6px rgba(0,0,0,0.7), inset 0 1px 2px rgba(255,255,255,0.2)',
-                    zIndex: 10
-                  }}>
-                    {num}
-                  </div>
-                </div>
-              );
-            })}
-            
-            {/* Divider Lines */}
-            {Array.from({length: 37}).map((_, i) => (
-              <div
-                key={i}
-                style={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  width: '3px',
-                  height: '370px',
-                  background: 'linear-gradient(to bottom, #FFD700, #B8860B)',
-                  transformOrigin: '1.5px 185px',
-                  transform: `translate(-50%, -50%) rotate(${i * (360/37)}deg) translate(-1.5px, -185px)`,
-                  zIndex: 5
-                }}
-              />
-            ))}
-          </div>
-          
-          {/* Center Hub */}
+          {/* Outer Ring */}
           <div style={{
             position: 'absolute',
             top: '50%',
             left: '50%',
+            width: '900px',
+            height: '900px',
             transform: 'translate(-50%, -50%)',
-            width: '180px',
-            height: '180px',
-            background: 'radial-gradient(circle, #FFD700 0%, #DAA520 50%, #B8860B 100%)',
             borderRadius: '50%',
-            border: '16px solid #FFF8DC',
-            boxShadow: '0 0 50px rgba(255,215,0,0.9), inset 0 0 30px rgba(0,0,0,0.4)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '72px',
-            zIndex: 20
+            border: '20px solid #B8860B',
+            background: 'radial-gradient(circle, #DAA520 0%, #B8860B 100%)',
+            boxShadow: 'inset 0 0 50px rgba(0,0,0,0.4)'
           }}>
-            🎰
+            {/* Main Wheel with Numbers */}
+            <div style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              width: '820px',
+              height: '820px',
+              transform: 'translate(-50%, -50%)',
+              borderRadius: '50%',
+              background: '#2F1B14',
+              border: '10px solid #FFD700',
+              boxShadow: 'inset 0 0 40px rgba(0,0,0,0.8), 0 0 30px rgba(255,215,0,0.6)'
+            }}>
+              {/* Number Segments - Combined colored background and number display */}
+              {[0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26].map((num, i) => {
+                const isRed = [1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36].includes(num);
+                const angle = i * (360/37);
+                const segmentColor = num === 0 ? '#228B22' : isRed ? '#DC143C' : '#000000';
+                
+                return (
+                  <div key={num} style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transformOrigin: '0 0',
+                    transform: `translate(-50%, -50%) rotate(${angle}deg) translate(0, -341px)`
+                  }}>
+                    {/* Colored Segment Background */}
+                    <div style={{
+                      width: '0',
+                      height: '0',
+                      borderLeft: '8px solid transparent',
+                      borderRight: '8px solid transparent',
+                      borderBottom: `341px solid ${segmentColor}`,
+                      opacity: 0.9
+                    }} />
+                    
+                    {/* Number Display - positioned relative to segment */}
+                    <div style={{
+                      position: 'absolute',
+                      top: '70px',
+                      left: '50%',
+                      transform: `translateX(-50%) rotate(${-angle}deg)`,
+                      color: '#FFFFFF',
+                      fontSize: '18px',
+                      fontWeight: '900',
+                      textShadow: '3px 3px 6px rgba(0,0,0,0.9)',
+                      background: `radial-gradient(circle, ${segmentColor}, ${segmentColor === '#228B22' ? '#006400' : segmentColor === '#DC143C' ? '#8B0000' : '#000000'})`,
+                      width: '35px',
+                      height: '25px',
+                      borderRadius: '6px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      border: '2px solid #FFD700',
+                      boxShadow: '0 3px 6px rgba(0,0,0,0.7), inset 0 1px 2px rgba(255,255,255,0.2)',
+                      zIndex: 10
+                    }}>
+                      {num}
+                    </div>
+                  </div>
+                );
+              })}
+              
+              {/* Divider Lines */}
+              {Array.from({length: 37}).map((_, i) => (
+                <div
+                  key={i}
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    width: '3px',
+                    height: '361px',
+                    background: 'linear-gradient(to bottom, #FFD700, #B8860B)',
+                    transformOrigin: '1.5px 180.5px',
+                    transform: `translate(-50%, -50%) rotate(${i * (360/37)}deg) translate(-1.5px, -180.5px)`,
+                    zIndex: 5
+                  }}
+                />
+              ))}
+            </div>
+            
+            {/* Center Hub */}
+            <div style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              width: '180px',
+              height: '180px',
+              background: 'radial-gradient(circle, #FFD700 0%, #DAA520 50%, #B8860B 100%)',
+              borderRadius: '50%',
+              border: '16px solid #FFF8DC',
+              boxShadow: '0 0 50px rgba(255,215,0,0.9), inset 0 0 30px rgba(0,0,0,0.4)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '72px',
+              zIndex: 20
+            }}>
+              🎰
+            </div>
           </div>
-          
-          {/* Animated Ball - Realistic Physics */}
-          <div style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transformOrigin: '0 0',
-            transform: spinning 
-              ? `translate(-50%, -50%) rotate(${-wheelRotation * 1.5}deg) translate(0, -420px)`
-              : res 
-                ? `translate(-50%, -50%) rotate(${res.result.spin.pocket * (360/37)}deg) translate(0, -420px)`
-                : 'translate(-50%, -50%) rotate(0deg) translate(0, -420px)',
-            width: '32px',
-            height: '32px',
-            background: 'radial-gradient(circle, #FFFFFF 0%, #E0E0E0 70%, #C0C0C0 100%)',
-            borderRadius: '50%',
-            border: '6px solid #C0C0C0',
-            boxShadow: '0 0 40px rgba(255,255,255,0.9), 0 10px 20px rgba(0,0,0,0.4)',
-            transition: spinning ? 'transform 3s cubic-bezier(0.25, 0.46, 0.45, 0.94)' : 'transform 0.5s ease-out',
-            zIndex: 25
-          }} />
         </div>
         
-          {/* Outer Decorative Ring - moved inside rotating container */}
-          <div style={{
-            position: 'absolute',
-            inset: '-34px',
-            borderRadius: '50%',
-            border: '8px solid #8B4513',
-            background: 'conic-gradient(from 0deg, #DAA520, #FFD700, #DAA520, #B8860B, #DAA520)',
-            opacity: 0.4,
-            zIndex: 1
-          }} />
+        {/* Animated Ball - Realistic Physics - Outside rotating container */}
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transformOrigin: '0 0',
+          transform: spinning 
+            ? `translate(-50%, -50%) rotate(${-wheelRotation * 1.5}deg) translate(0, -420px)`
+            : res 
+              ? `translate(-50%, -50%) rotate(${res.result.spin.pocket * (360/37)}deg) translate(0, -420px)`
+              : 'translate(-50%, -50%) rotate(0deg) translate(0, -420px)',
+          width: '32px',
+          height: '32px',
+          background: 'radial-gradient(circle, #FFFFFF 0%, #E0E0E0 70%, #C0C0C0 100%)',
+          borderRadius: '50%',
+          border: '6px solid #C0C0C0',
+          boxShadow: '0 0 40px rgba(255,255,255,0.9), 0 10px 20px rgba(0,0,0,0.4)',
+          transition: spinning ? 'transform 3s cubic-bezier(0.25, 0.46, 0.45, 0.94)' : 'transform 0.5s ease-out',
+          zIndex: 25
+        }} />
+        
+        {/* Outer Decorative Ring */}
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          width: '1068px',
+          height: '1068px',
+          transform: 'translate(-50%, -50%)',
+          borderRadius: '50%',
+          border: '8px solid #8B4513',
+          background: 'conic-gradient(from 0deg, #DAA520, #FFD700, #DAA520, #B8860B, #DAA520)',
+          opacity: 0.4,
+          zIndex: 1
+        }} />
       </div>
       
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
