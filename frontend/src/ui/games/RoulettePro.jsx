@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import RouletteFeltGrid from '../../components/RouletteFeltGrid'
-export default function RoulettePro({onDone}){
+
+function RoulettePro({onDone}){
   const api = window.CASINO_API
   const [bets,setBets]=useState([])
   const [chip,setChip]=useState(5)
@@ -12,14 +13,33 @@ export default function RoulettePro({onDone}){
     setSpinning(true)
     setWheelRotation(prev => prev + 1800 + Math.random() * 720)
     
-    const r = await fetch(`${api}/casino/roulette/spin`, {method:'POST', headers:{'Content-Type':'application/json','X-User-Id':'demo-user'}, body: JSON.stringify({stake:1,currency:'USD', params:{bets}})})
-    const j = await r.json()
-    
-    setTimeout(() => {
-      setRes(j)
-      setSpinning(false)
-      onDone&&onDone()
-    }, 3000)
+    try {
+      const r = await fetch(`${api}/casino/roulette/spin`, {method:'POST', headers:{'Content-Type':'application/json','X-User-Id':'demo-user'}, body: JSON.stringify({stake:1,currency:'USD', params:{bets}})})
+      
+      if (!r.ok) {
+        throw new Error(`HTTP error! status: ${r.status}`)
+      }
+      
+      const j = await r.json()
+      
+      if (j && j.result && j.result.spin) {
+        setTimeout(() => {
+          setRes(j)
+          setSpinning(false)
+          onDone&&onDone()
+        }, 3000)
+      } else {
+        console.error('Invalid response structure:', j)
+        setTimeout(() => {
+          setSpinning(false)
+        }, 3000)
+      }
+    } catch (error) {
+      console.error('Roulette spin error:', error)
+      setTimeout(() => {
+        setSpinning(false)
+      }, 3000)
+    }
   }
   return (
     <div className="space-y-8">
@@ -75,84 +95,162 @@ export default function RoulettePro({onDone}){
         </button>
       </div>
       
-      {/* Roulette Wheel Animation Area */}
-      {spinning && (
-        <div className="relative h-96 bg-gradient-to-br from-green-900 to-green-800 rounded-full border-8 border-yellow-500 shadow-2xl overflow-hidden mx-auto" style={{width: '384px', height: '384px'}}>
-          <div className="absolute inset-0 bg-gradient-to-r from-green-500/20 to-green-600/20 animate-pulse rounded-full"></div>
-          
-          {/* Spinning Wheel */}
-          <div 
-            className="absolute inset-4 rounded-full border-4 border-yellow-400 bg-gradient-to-br from-red-800 via-black to-red-800 shadow-inner"
-            style={{
-              transform: `rotate(${wheelRotation}deg)`,
-              animation: spinning ? 'wheelSpin 3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards' : 'none',
-              background: `conic-gradient(
-                from 0deg,
-                #dc2626 0deg, #dc2626 9.73deg,
-                #000000 9.73deg, #000000 19.46deg,
-                #dc2626 19.46deg, #dc2626 29.19deg,
-                #000000 29.19deg, #000000 38.92deg,
-                #dc2626 38.92deg, #dc2626 48.65deg,
-                #000000 48.65deg, #000000 58.38deg,
-                #dc2626 58.38deg, #dc2626 68.11deg,
-                #000000 68.11deg, #000000 77.84deg,
-                #dc2626 77.84deg, #dc2626 87.57deg,
-                #000000 87.57deg, #000000 97.3deg,
-                #dc2626 97.3deg, #dc2626 107.03deg,
-                #000000 107.03deg, #000000 116.76deg,
-                #dc2626 116.76deg, #dc2626 126.49deg,
-                #000000 126.49deg, #000000 136.22deg,
-                #dc2626 136.22deg, #dc2626 145.95deg,
-                #000000 145.95deg, #000000 155.68deg,
-                #dc2626 155.68deg, #dc2626 165.41deg,
-                #000000 165.41deg, #000000 175.14deg,
-                #dc2626 175.14deg, #dc2626 184.87deg,
-                #000000 184.87deg, #000000 194.6deg,
-                #dc2626 194.6deg, #dc2626 204.33deg,
-                #000000 204.33deg, #000000 214.06deg,
-                #dc2626 214.06deg, #dc2626 223.79deg,
-                #000000 223.79deg, #000000 233.52deg,
-                #dc2626 233.52deg, #dc2626 243.25deg,
-                #000000 243.25deg, #000000 252.98deg,
-                #dc2626 252.98deg, #dc2626 262.71deg,
-                #000000 262.71deg, #000000 272.44deg,
-                #dc2626 272.44deg, #dc2626 282.17deg,
-                #000000 282.17deg, #000000 291.9deg,
-                #dc2626 291.9deg, #dc2626 301.63deg,
-                #000000 301.63deg, #000000 311.36deg,
-                #dc2626 311.36deg, #dc2626 321.09deg,
-                #000000 321.09deg, #000000 330.82deg,
-                #dc2626 330.82deg, #dc2626 340.55deg,
-                #000000 340.55deg, #000000 350.28deg,
-                #dc2626 350.28deg, #dc2626 360deg
-              )`
-            }}
-          >
-            {/* Wheel Numbers */}
-            {[0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26].map((num, i) => (
+      {/* Enhanced Professional Roulette Wheel - Always Visible */}
+      <div style={{
+        position: 'relative',
+        width: '1000px',
+        height: '1000px',
+        margin: '20px auto',
+        background: 'radial-gradient(circle, #8B4513 0%, #654321 30%, #2F1B14 100%)',
+        borderRadius: '50%',
+        border: '30px solid #FFD700',
+        boxShadow: '0 0 120px rgba(255, 215, 0, 0.9), inset 0 0 80px rgba(0,0,0,0.6)',
+        overflow: 'visible'
+      }}>
+        {/* Outer Ring */}
+        <div style={{
+          position: 'absolute',
+          inset: '50px',
+          borderRadius: '50%',
+          border: '20px solid #B8860B',
+          background: 'radial-gradient(circle, #DAA520 0%, #B8860B 100%)',
+          boxShadow: 'inset 0 0 50px rgba(0,0,0,0.4)',
+          transform: `rotate(${wheelRotation}deg)`,
+          transition: spinning ? 'transform 3s cubic-bezier(0.25, 0.46, 0.45, 0.94)' : 'none'
+        }}>
+          {/* Main Wheel with Numbers */}
+          <div style={{
+            position: 'absolute',
+            inset: '40px',
+            borderRadius: '50%',
+            background: '#2F1B14',
+            border: '10px solid #FFD700',
+            boxShadow: 'inset 0 0 40px rgba(0,0,0,0.8), 0 0 30px rgba(255,215,0,0.6)'
+          }}>
+            {/* Number Segments - Combined colored background and number display */}
+            {[0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26].map((num, i) => {
+              const isRed = [1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36].includes(num);
+              const angle = i * (360/37);
+              const segmentColor = num === 0 ? '#228B22' : isRed ? '#DC143C' : '#000000';
+              
+              return (
+                <div key={num} style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transformOrigin: '0 0',
+                  transform: `translate(-50%, -50%) rotate(${angle}deg) translate(0, -350px)`
+                }}>
+                  {/* Colored Segment Background */}
+                  <div style={{
+                    width: '0',
+                    height: '0',
+                    borderLeft: '8px solid transparent',
+                    borderRight: '8px solid transparent',
+                    borderBottom: `350px solid ${segmentColor}`,
+                    opacity: 0.9
+                  }} />
+                  
+                  {/* Number Display - positioned relative to segment */}
+                  <div style={{
+                    position: 'absolute',
+                    top: '70px',
+                    left: '50%',
+                    transform: `translateX(-50%) rotate(${-angle}deg)`,
+                    color: '#FFFFFF',
+                    fontSize: '18px',
+                    fontWeight: '900',
+                    textShadow: '3px 3px 6px rgba(0,0,0,0.9)',
+                    background: `radial-gradient(circle, ${segmentColor}, ${segmentColor === '#228B22' ? '#006400' : segmentColor === '#DC143C' ? '#8B0000' : '#000000'})`,
+                    width: '35px',
+                    height: '25px',
+                    borderRadius: '6px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: '2px solid #FFD700',
+                    boxShadow: '0 3px 6px rgba(0,0,0,0.7), inset 0 1px 2px rgba(255,255,255,0.2)',
+                    zIndex: 10
+                  }}>
+                    {num}
+                  </div>
+                </div>
+              );
+            })}
+            
+            {/* Divider Lines */}
+            {Array.from({length: 37}).map((_, i) => (
               <div
-                key={num}
-                className="absolute text-white font-bold text-sm"
+                key={i}
                 style={{
-                  transform: `rotate(${i * (360/37)}deg) translateY(-140px)`,
-                  transformOrigin: '50% 150px',
-                  color: num === 0 ? '#22c55e' : (num % 2 === 0 ? '#ffffff' : '#ffffff')
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  width: '3px',
+                  height: '370px',
+                  background: 'linear-gradient(to bottom, #FFD700, #B8860B)',
+                  transformOrigin: '1.5px 185px',
+                  transform: `translate(-50%, -50%) rotate(${i * (360/37)}deg) translate(-1.5px, -185px)`,
+                  zIndex: 5
                 }}
-              >
-                {num}
-              </div>
+              />
             ))}
           </div>
           
           {/* Center Hub */}
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full border-4 border-yellow-300 shadow-lg flex items-center justify-center">
-            <div className="text-2xl">🎡</div>
+          <div style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '180px',
+            height: '180px',
+            background: 'radial-gradient(circle, #FFD700 0%, #DAA520 50%, #B8860B 100%)',
+            borderRadius: '50%',
+            border: '16px solid #FFF8DC',
+            boxShadow: '0 0 50px rgba(255,215,0,0.9), inset 0 0 30px rgba(0,0,0,0.4)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '72px',
+            zIndex: 20
+          }}>
+            🎰
           </div>
           
-          {/* Ball Pointer */}
-          <div className="absolute top-4 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-white rounded-full shadow-lg border-2 border-gray-300 animate-bounce"></div>
+          {/* Animated Ball - Realistic Physics */}
+          <div style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transformOrigin: '0 0',
+            transform: spinning 
+              ? `translate(-50%, -50%) rotate(${-wheelRotation * 1.5}deg) translate(0, -420px)`
+              : res 
+                ? `translate(-50%, -50%) rotate(${res.result.spin.pocket * (360/37)}deg) translate(0, -420px)`
+                : 'translate(-50%, -50%) rotate(0deg) translate(0, -420px)',
+            width: '32px',
+            height: '32px',
+            background: 'radial-gradient(circle, #FFFFFF 0%, #E0E0E0 70%, #C0C0C0 100%)',
+            borderRadius: '50%',
+            border: '6px solid #C0C0C0',
+            boxShadow: '0 0 40px rgba(255,255,255,0.9), 0 10px 20px rgba(0,0,0,0.4)',
+            transition: spinning ? 'transform 3s cubic-bezier(0.25, 0.46, 0.45, 0.94)' : 'transform 0.5s ease-out',
+            zIndex: 25
+          }} />
         </div>
-      )}
+        
+          {/* Outer Decorative Ring - moved inside rotating container */}
+          <div style={{
+            position: 'absolute',
+            inset: '-34px',
+            borderRadius: '50%',
+            border: '8px solid #8B4513',
+            background: 'conic-gradient(from 0deg, #DAA520, #FFD700, #DAA520, #B8860B, #DAA520)',
+            opacity: 0.4,
+            zIndex: 1
+          }} />
+      </div>
       
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
         <div className="xl:col-span-2 space-y-6">
@@ -254,3 +352,5 @@ export default function RoulettePro({onDone}){
     </div>
   )
 }
+
+export default RoulettePro;
