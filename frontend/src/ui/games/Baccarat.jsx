@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { API_BASE_URL } from '../../config.js'
 import BaccaratRoadmaps from '../../components/BaccaratRoadmaps'
 
 // Helper function to convert card string to image filename
