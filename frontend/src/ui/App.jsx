@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { API_BASE_URL } from '../config.js'
 import Blackjack from './games/Blackjack'
 import Baccarat from './games/Baccarat'
 import Slots from './games/Slots'
@@ -15,7 +16,7 @@ const TABS=[
 
 export default function App(){
   const [tab,setTab]=useState('roulette-pro')
-  const api = window.CASINO_API
+  const api = API_BASE_URL
   const [balance, setBalance] = useState(null)
 
   const refreshBalance = async ()=>{
