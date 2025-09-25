@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1800" viewBox="0 0 900 1800">
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f5e6a7"/>
+      <stop offset="40%" stop-color="#d7b868"/>
+      <stop offset="100%" stop-color="#9a6f2d"/>
+    </linearGradient>
+    <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#8d3f21"/>
+      <stop offset="100%" stop-color="#5b2213"/>
+    </linearGradient>
+    <linearGradient id="feltEdge" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#126a39"/>
+      <stop offset="100%" stop-color="#0f5a31"/>
+    </linearGradient>
+    <radialGradient id="felt" cx="50%" cy="35%" r="80%">
+      <stop offset="0%" stop-color="#1aa454"/>
+      <stop offset="100%" stop-color="#0f6c3b"/>
+    </radialGradient>
+    <filter id="innerShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feOffset dx="0" dy="8" result="off"/>
+      <feGaussianBlur in="off" stdDeviation="12" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="arithmetic" k2="1" k3="-1"/>
+    </filter>
+  </defs>
+
+  <!-- Wood backing -->
+  <rect x="0" y="0" width="900" height="1800" fill="url(#wood)"/>
+
+  <!-- Gold arch frame -->
+  <path d="M60,1740 L60,420 A390,390 0 0 1 840,420 L840,1740 Z"
+        fill="url(#gold)"/>
+  <path d="M100,1700 L100,450 A350,350 0 0 1 800,450 L800,1700 Z"
+        fill="url(#feltEdge)"/>
+
+  <!-- Felt window area (transparent center to overlay app content) -->
+  <clipPath id="win">
+    <path d="M110,1688 L110,460 A340,340 0 0 1 790,460 L790,1688 Z" />
+  </clipPath>
+  <g clip-path="url(#win)">
+    <rect x="110" y="460" width="680" height="1228" fill="url(#felt)"/>
+  </g>
+
+  <!-- Inner shine -->
+  <path d="M70,1740 L70,420 A380,380 0 0 1 830,420 L830,1740 Z"
+        fill="none" stroke="#fff6" stroke-width="3"/>
+</svg>

@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#b39cff"/>
+      <stop offset="100%" stop-color="#6b5bff"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffd06b"/>
+      <stop offset="100%" stop-color="#ff7a1a"/>
+    </linearGradient>
+    <radialGradient id="glass" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#e9f6ff" stop-opacity=".95"/>
+      <stop offset="100%" stop-color="#7ac2ff" stop-opacity=".9"/>
+    </radialGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <!-- body -->
+  <g transform="translate(16,6)">
+    <path d="M32 0 C18 10 12 24 12 38 v16 h40 V38 C52 24 46 10 32 0z" fill="url(#g1)" stroke="#302a64" stroke-width="2"/>
+    <!-- window -->
+    <circle cx="32" cy="28" r="9" fill="url(#glass)" stroke="#2a3560" stroke-width="2"/>
+    <circle cx="32" cy="28" r="4" fill="#dff3ff" opacity=".7"/>
+    <!-- fins -->
+    <path d="M12 46 l-10 8 v8 h22 v-16z" fill="#8b7cff" stroke="#302a64" stroke-width="2"/>
+    <path d="M52 46 l10 8 v8 H40 v-16z" fill="#8b7cff" stroke="#302a64" stroke-width="2"/>
+    <!-- engine -->
+    <rect x="26" y="54" width="12" height="10" rx="2" fill="#2e275f" />
+    <!-- flame (separate asset recommended, but include a subtle static one) -->
+    <path d="M32 64 c6 10 6 20 0 28 c-6 -8 -6 -18 0 -28z" fill="url(#g2)" filter="url(#glow)"/>
+  </g>
+</svg>

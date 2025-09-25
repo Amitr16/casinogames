@@ -31,32 +31,16 @@ async def get_current_user_id(request: Request, x_user_id: Optional[str]=Header(
     return "demo-user"
 
 async def wallet_debit(user_id:str, amount:float, currency:str, ref:str, meta:dict)->None:
-    try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            url = settings.WALLET_BASE_URL.rstrip("/") + settings.WALLET_BET_URL
-            r = await client.post(url, json={"user_id":user_id,"amount":amount,"currency":currency,"ref":ref,"meta":meta})
-            if r.status_code>=300: raise HTTPException(400, f"Wallet debit failed: {r.text}")
-    except httpx.ConnectError:
-        pass
+    # Demo mode - skip wallet operations for speed
+    pass
 
 async def wallet_credit(user_id:str, amount:float, currency:str, ref:str, meta:dict)->None:
-    try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            url = settings.WALLET_BASE_URL.rstrip("/") + settings.WALLET_CREDIT_URL
-            r = await client.post(url, json={"user_id":user_id,"amount":amount,"currency":currency,"ref":ref,"meta":meta})
-            if r.status_code>=300: raise HTTPException(400, f"Wallet credit failed: {r.text}")
-    except httpx.ConnectError:
-        pass
+    # Demo mode - skip wallet operations for speed
+    pass
 
 async def wallet_balance(user_id:str):
-    try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            url = settings.WALLET_BASE_URL.rstrip("/") + settings.WALLET_BAL_URL + f"?user_id={user_id}"
-            r = await client.get(url)
-            if r.status_code>=300: raise HTTPException(400, f"Wallet balance failed: {r.text}")
-            return r.json()
-    except httpx.ConnectError:
-        return {"balance": 1000, "currency": "USD"}
+    # Demo mode - return mock balance instantly
+    return {"balance": 1000, "currency": "USD"}
 
 app = FastAPI(title="Kryzel Casino Suite Pro", version="0.3.0")
 

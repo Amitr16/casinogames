@@ -4,6 +4,11 @@ import BaccaratRoadmaps from '../../components/BaccaratRoadmaps'
 
 // Helper function to convert card string to image filename
 const getCardImage = (cardStr) => {
+  // Handle card back (placeholder cards)
+  if (cardStr === '🂠' || cardStr === 'back' || !cardStr || cardStr.trim() === '') {
+    return new URL('../../assets/png/back.png', import.meta.url).href;
+  }
+  
   // Extract value and suit from card string
   const value = cardStr.replace(/[♠♥♦♣SHDC]/g, '').trim();
   let suit = '';
@@ -26,7 +31,7 @@ const getCardImage = (cardStr) => {
   else if (filenameValue === 'k') filenameValue = 'king';
   else if (filenameValue === 'a') filenameValue = 'ace';
   
-  return `/src/assets/png/${filenameValue}_of_${suit}.png`;
+  return new URL(`../../assets/png/${filenameValue}_of_${suit}.png`, import.meta.url).href;
 };
 export default function Baccarat({onDone}){
   const api=window.CASINO_API
@@ -35,6 +40,16 @@ export default function Baccarat({onDone}){
   const [res,setRes]=useState(null)
   const [entries,setEntries]=useState([])
   const play= async()=>{
+    // Show placeholder cards immediately
+    setRes({
+      result: {
+        player: ['🂠', '🂠'],
+        banker: ['🂠', '🂠'],
+        player_total: 0,
+        banker_total: 0
+      }
+    })
+    
     const r = await fetch(`${api}/casino/baccarat/play`, {method:'POST', headers:{'Content-Type':'application/json','X-User-Id':'demo-user'}, body: JSON.stringify({stake, currency:'USD', params:{bet_on:side}})})
     const j = await r.json(); setRes(j); setEntries(prev=>[{winner:j.result.winner}, ...prev].slice(0,144)); onDone&&onDone()
   }

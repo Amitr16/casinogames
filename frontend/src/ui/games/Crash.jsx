@@ -1,4 +1,6 @@
 import React, { useState, useRef, useLayoutEffect } from 'react'
+import rocketURL from '../../assets/svg/crash/rocket.svg'
+import flameURL from '../../assets/svg/crash/flame.svg'
 export default function Crash({onDone}){
   const api=window.CASINO_API
   const [stake,setStake]=useState(1)
@@ -41,12 +43,11 @@ export default function Crash({onDone}){
         // Bottom-center of rocket relative to container (this is where trail starts)
         const bx = r.left + r.width / 2 - c.left
         const by = r.top + r.height - c.top
-        // Trail extends backward from rocket engine
-        const trailLength = 60 // pixels
-        const angle = -45 * (Math.PI / 180) // -45 degrees in radians
-        const tx = bx + Math.cos(angle) * trailLength
-        const ty = by + Math.sin(angle) * trailLength
-        setTrailPoints(p => ({ x0: bx, y0: by, x1: tx, y1: ty }))
+        // Trail starts from fixed launch point and extends to rocket (grows as rocket flies)
+        const launchX = trailPoints.x0 // Fixed launch point X
+        const launchY = trailPoints.y0 // Fixed launch point Y
+        // Trail goes from launch point to current rocket position
+        setTrailPoints(p => ({ x0: launchX, y0: launchY, x1: bx, y1: by }))
         raf = requestAnimationFrame(tick)
       }
     }
@@ -264,34 +265,56 @@ export default function Crash({onDone}){
               <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
             </filter>
           </defs>
-          {/* Dynamic trail line */}
-          <line 
-            x1={trailPoints.x0} 
-            y1={trailPoints.y0} 
-            x2={trailPoints.x1} 
-            y2={trailPoints.y1}
-            stroke="url(#trail)" 
-            strokeWidth="8" 
-            strokeLinecap="round"
-            filter="url(#glow)" 
-          />
+          {/* Dynamic trail line - rotated 90 degrees clockwise */}
+          <g transform={`rotate(90 ${trailPoints.x0} ${trailPoints.y0})`}>
+            <line 
+              x1={trailPoints.x0} 
+              y1={trailPoints.y0} 
+              x2={trailPoints.x1} 
+              y2={trailPoints.y1}
+              stroke="url(#trail)" 
+              strokeWidth="8" 
+              strokeLinecap="round"
+              filter="url(#glow)" 
+            />
+          </g>
         </svg>
         
         {/* Flying Rocket */}
-        <div 
+        <img
           ref={rocketRef}
+          src={rocketURL}
+          alt="rocket"
           style={{
             position: 'absolute',
             bottom: `${20 + Math.min(currentMultiplier * 35, 380)}px`,
             left: `${Math.min(10 + currentMultiplier * 8, 60)}%`,
-            fontSize: '60px',
-            transition: 'all 0.1s ease-linear',
-            transform: 'rotate(-15deg)',
-            display: 'inline-block',
-            zIndex: 2
-          }}>
-          🚀
-        </div>
+            transform: 'translate(-50%, 0) rotate(45deg)',
+            width: 72,
+            height: 72,
+            filter: 'drop-shadow(0 0 14px rgba(124,104,255,.55))',
+            zIndex: 2,
+            transition: 'all 0.1s ease-linear'
+          }}
+        />
+        
+        {/* Flame Trail */}
+        <img
+          src={flameURL}
+          alt=""
+          style={{
+            position: 'absolute',
+            bottom: `${20 + Math.min(currentMultiplier * 35, 380) - 6}px`,
+            left: `${Math.min(10 + currentMultiplier * 8, 60)}%`,
+            transform: 'translate(-50%, 0) rotate(45deg) translate(0, -36px)',
+            width: 32,
+            height: 48,
+            opacity: 0.9,
+            mixBlendMode: 'screen',
+            zIndex: 1,
+            transition: 'opacity 120ms ease'
+          }}
+        />
         
         {/* Multiplier Display */}
         <div style={{

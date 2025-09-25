@@ -5,7 +5,7 @@ import BlackjackAdvanced from '../../components/BlackjackAdvanced'
 const getCardImage = (cardStr) => {
   // Handle card back (dealer's hole card)
   if (cardStr === '🂠' || cardStr === 'back' || !cardStr || cardStr.trim() === '') {
-    return '/src/assets/png/back.png';
+    return new URL('../../assets/png/back.png', import.meta.url).href;
   }
   
   // Extract value and suit from card string
@@ -30,7 +30,7 @@ const getCardImage = (cardStr) => {
   else if (filenameValue === 'k') filenameValue = 'king';
   else if (filenameValue === 'a') filenameValue = 'ace';
   
-  return `/src/assets/png/${filenameValue}_of_${suit}.png`;
+  return new URL(`../../assets/png/${filenameValue}_of_${suit}.png`, import.meta.url).href;
 };
 
 // Helper function to calculate card value
@@ -57,6 +57,13 @@ export default function Blackjack({onDone}){
   const call = async(action)=>{
     if(action === 'deal') {
       setDealingCards(true)
+      // Show placeholder cards immediately
+      setState({
+        player: ['🂠', '🂠'],
+        dealer: ['🂠', '🂠'],
+        pv: 0,
+        dv: 0
+      })
       setTimeout(() => setDealingCards(false), 2000)
     }
     

@@ -1,5 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
 
+/* Crash Game Color Variables */
+:root {
+  --crash-bg: #221b2b;
+  --crash-panel: #2b2338;
+  --crash-line: #4b3a63;
+  --crash-text: #eee9fb;
+  --crash-muted: #a79ac6;
+  --crash-accent: #7c68ff;
+  --crash-green: #2ef99b;
+  --crash-gold: #f2b55e;
+}
+
 /* PROFESSIONAL CASINO STYLING - DIRECT CSS (NO LAYERS) */
   * {
     box-sizing: border-box;

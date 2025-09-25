@@ -66,23 +66,25 @@ function RoulettePro({onDone}){
   
   // Listen for transitionend to compute winner from DOM
   useEffect(() => {
-    const el = wheelContainerRef.current;
-    if (!el) return;
+    const wheelEl = wheelContainerRef.current;
+    if (!wheelEl) return;
 
     const onEnd = (e) => {
+      console.log('Wheel transitionend fired:', e.propertyName, e.target);
       if (e.propertyName !== 'transform') return;
 
       // Wait a frame so the browser commits final matrix
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
+          console.log('Computing winner from DOM...');
           computeWinnerFromDOM();   // <-- defined above
         });
       });
     };
 
-    el.addEventListener('transitionend', onEnd);
-    return () => el.removeEventListener('transitionend', onEnd);
-  }, []);
+    wheelEl.addEventListener('transitionend', onEnd);
+    return () => wheelEl.removeEventListener('transitionend', onEnd);
+  }, [bets]); // Add bets as dependency so the closure captures current bets
   
   // DOM-based angle reading refs
   const ballRef = useRef(null)       // the ball element
@@ -92,26 +94,43 @@ function RoulettePro({onDone}){
   
   // Compute winner from DOM after transition ends
   const computeWinnerFromDOM = () => {
+    // READ BOTH: ball and wheel container (not child zero pocket) FIRST
+    const ballDeg = getScreenAngle(ballRef.current);   // includes ball's -1.5 factor + offset
+    const wheelAngle = getScreenAngle(wheelContainerRef.current);   // wheel container's final rotation
+    
+    // Only set spinning to false AFTER reading the DOM positions
     setSpinning(false);
 
-    // READ BOTH: ball and a wheel reference that rotates with the ring
-    const ballDeg = getScreenAngle(ballRef.current);   // includes ball's -1.5 factor + offset
-    const zeroDeg = getScreenAngle(zeroRef.current);   // pocket-0 angle on screen INCLUDING wheel rotation
+    console.log('DOM angles:', { ballDeg, wheelAngle });
+    console.log('Wheel container position on screen:', wheelAngle, 'degrees');
+    
+    // Check if wheel is at stale position (0 degrees)
+    if (wheelAngle === 0) {
+      console.warn('⚠️ STALE WHEEL POSITION: Wheel container is at 0° - wheel may not be at final position!');
+    } else {
+      console.log('✅ Wheel at final position: Container at', wheelAngle, 'degrees');
+    }
 
-    // If zeroRef marks a boundary (between slots) use PHASE=0.5; if it marks the center use 0.
-    const PHASE = 0; // set to 0.5 if your zeroRef element is a divider/boundary
-
-    // Ball relative to wheel's pocket-0 baseline
-    const rel = mod(ballDeg - zeroDeg, 360);           // 0..360 relative angle
-
-    // Nearest pocket center (phase accounts for center vs boundary)
-    const idx = mod(Math.round(rel / DEG - PHASE), NUM_SLOTS);
+    // The ball and wheel both have final positions from DOM
+    // We need to calculate which pocket the ball is over
+    
+    // Ball position relative to wheel's zero position
+    // The wheel has rotated, so we need to find the relative angle
+    const ballRelativeToWheel = mod(ballDeg - wheelAngle, 360);
+    
+    // Convert relative position to pocket index
+    // Each pocket is DEG degrees wide, so divide by DEG to get index
+    const idx = mod(Math.round(ballRelativeToWheel / DEG), NUM_SLOTS);
     const pocketFinal = ORDER[idx];
+    
+    console.log('Ball at', ballDeg, 'degrees, wheel at', wheelAngle, 'degrees');
+    console.log('Ball relative to wheel:', ballRelativeToWheel, 'degrees');
+    console.log('Pocket index:', idx, 'which is number:', pocketFinal);
 
-    // Optional micro-center
-    const centerDeg = mod(zeroDeg + (idx + PHASE) * DEG, 360);
-    const delta = sdist(centerDeg, ballDeg);
-    if (Math.abs(delta) > 0.1) setBallOffset(o => o + delta);
+    // Optional micro-center polish (if needed)
+    // const centerScreen = mod(wheelAngle + (idx + PHASE) * DEG, 360);
+    // const delta = sdist(centerScreen, ballDeg);
+    // if (Math.abs(delta) > 0.1) setBallOffset(o => o + delta);
 
     // Show the derived winner
     setResultUI({ pocket: pocketFinal, serverPocket: null });
@@ -124,23 +143,26 @@ function RoulettePro({onDone}){
       pocketFinal, totalBet, winnings, bets
     });
     
-    if (winnings > 0) {
-      console.log('DEBUG: Triggering celebration for', winnings);
-      triggerCelebration(winnings)
-    } else if (totalBet > 0) {
-      console.log('DEBUG: Triggering loss for', totalBet);
-      triggerLoss(totalBet)
-    } else {
-      console.log('DEBUG: No bets placed, no celebration');
-    }
+    // Show winning number on wheel after 2 seconds
+    setTimeout(() => {
+      if (winnings > 0) {
+        console.log('DEBUG: Triggering celebration for', winnings);
+        triggerCelebration(winnings, pocketFinal)
+      } else if (totalBet > 0) {
+        console.log('DEBUG: Triggering loss for', totalBet);
+        triggerLoss(totalBet, pocketFinal)
+      } else {
+        console.log('DEBUG: No bets placed, no celebration');
+      }
+    }, 2000); // Show after 2 seconds
     
-    // Reset everything after a short delay to show the result
+    // Reset everything after a longer delay to allow celebrations to show
     setTimeout(() => {
       setBets([]) // Clear all bets
       setWheelRotation(0) // Reset wheel to zero degrees
       setBallOffset(0) // Reset ball offset
       setResultUI(null) // Clear result display
-    }, 2000) // 2 seconds after result is shown
+    }, 4000) // 4 seconds after result is shown to allow celebrations
     
     onDone && onDone();
   };
@@ -223,36 +245,36 @@ function RoulettePro({onDone}){
   }
   
   // Show celebration animation
-  const triggerCelebration = (amount) => {
-    console.log('DEBUG: triggerCelebration called with amount:', amount);
+  const triggerCelebration = (amount, winningNumber) => {
+    console.log('DEBUG: triggerCelebration called with amount:', amount, 'winning number:', winningNumber);
     setWinAmount(amount)
     setShowCelebration(true)
     setShowPopup(true)
-    setPopupMessage(`🎉 YOU WON $${amount}! 🎉`)
+    setPopupMessage(`🎉 YOU WON $${amount}! 🎉\nWinning Number: ${winningNumber}`)
     setPopupType('win')
     
     // Hide celebration after 5 seconds
-    setTimeout(() => {
+        setTimeout(() => {
       setShowCelebration(false)
     }, 5000)
     
     // Hide popup after 3 seconds
-    setTimeout(() => {
+        setTimeout(() => {
       setShowPopup(false)
-    }, 3000)
-  }
+        }, 3000)
+      }
   
   // Show loss message
-  const triggerLoss = (totalBet) => {
-    console.log('DEBUG: triggerLoss called with totalBet:', totalBet);
+  const triggerLoss = (totalBet, winningNumber) => {
+    console.log('DEBUG: triggerLoss called with totalBet:', totalBet, 'winning number:', winningNumber);
     setShowPopup(true)
-    setPopupMessage(`💸 You lost $${totalBet}. Better luck next time! 💸`)
+    setPopupMessage(`💸 You lost $${totalBet}. Better luck next time! 💸\nWinning Number: ${winningNumber}`)
     setPopupType('lose')
     
     // Hide popup after 3 seconds
-    setTimeout(() => {
+      setTimeout(() => {
       setShowPopup(false)
-    }, 3000)
+      }, 3000)
   }
   const spin = async()=>{
     if (spinning || bets.length === 0) return; // Don't allow spin without bets
@@ -328,7 +350,7 @@ function RoulettePro({onDone}){
           <div className="text-6xl mb-4">
             {popupType === 'win' ? '🎉' : '💸'}
           </div>
-          <div className="text-2xl font-bold mb-2">
+          <div className="text-2xl font-bold mb-2 whitespace-pre-line">
             {popupMessage}
           </div>
           {popupType === 'win' && (
@@ -404,6 +426,10 @@ function RoulettePro({onDone}){
         )}
       </div>
       
+      {/* Wheel and Bet Slip Row */}
+      <div className="flex gap-8 items-start justify-center mb-8 max-w-full px-4">
+        {/* Wheel Container */}
+        <div className="flex-shrink-0">
       {/* Enhanced Professional Roulette Wheel - Always Visible */}
       <div style={{
         position: 'relative',
@@ -414,20 +440,22 @@ function RoulettePro({onDone}){
         borderRadius: '50%',
         border: '30px solid #FFD700',
         boxShadow: '0 0 120px rgba(255, 215, 0, 0.9), inset 0 0 80px rgba(0,0,0,0.6)',
-        overflow: 'visible'
+            overflow: 'visible',
+            transform: 'scale(0.75)',
+            transformOrigin: 'center'
       }}>
         {/* Rotating Container - All elements rotate together */}
         <div 
           ref={wheelContainerRef}
           style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            width: '900px',
-            height: '900px',
-            transform: `translate(-50%, -50%) rotate(${wheelRotation}deg)`,
-            transition: spinning ? 'transform 3s cubic-bezier(0.25, 0.46, 0.45, 0.94)' : 'none'
-          }}>
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          width: '900px',
+          height: '900px',
+          transform: `translate(-50%, -50%) rotate(${wheelRotation}deg)`,
+          transition: spinning ? 'transform 3s cubic-bezier(0.25, 0.46, 0.45, 0.94)' : 'none'
+        }}>
           {/* Outer Ring */}
           <div style={{
             position: 'absolute',
@@ -465,46 +493,46 @@ function RoulettePro({onDone}){
                       key={num} 
                       ref={num === 0 ? zeroRef : null}   // <— this one becomes our angle baseline
                       style={{
-                        position: 'absolute',
-                        top: '50%',
-                        left: '50%',
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
                         transformOrigin: '50% 50%',
                         transform: `translate(-50%, -50%) rotate(${angle}deg) translate(0, -${WHEEL_OUTER_RADIUS}px)`
-                      }}>
-                      {/* Colored Segment Background */}
-                      <div style={{
-                        width: '0',
-                        height: '0',
-                        borderLeft: '8px solid transparent',
-                        borderRight: '8px solid transparent',
+                  }}>
+                    {/* Colored Segment Background */}
+                    <div style={{
+                      width: '0',
+                      height: '0',
+                      borderLeft: '8px solid transparent',
+                      borderRight: '8px solid transparent',
                         borderBottom: `${WHEEL_OUTER_RADIUS}px solid ${segmentColor}`,
-                        opacity: 0.9
-                      }} />
-                      
-                      {/* Number Display - positioned relative to segment */}
-                      <div style={{
-                        position: 'absolute',
+                      opacity: 0.9
+                    }} />
+                    
+                    {/* Number Display - positioned relative to segment */}
+                    <div style={{
+                      position: 'absolute',
                         top: '80px',
-                        left: '50%',
-                        transform: `translateX(-50%) rotate(${-angle}deg)`,
-                        color: '#FFFFFF',
-                        fontSize: '18px',
-                        fontWeight: '900',
-                        textShadow: '3px 3px 6px rgba(0,0,0,0.9)',
-                        background: `radial-gradient(circle, ${segmentColor}, ${segmentColor === '#228B22' ? '#006400' : segmentColor === '#DC143C' ? '#8B0000' : '#000000'})`,
-                        width: '35px',
-                        height: '25px',
-                        borderRadius: '6px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        border: '2px solid #FFD700',
-                        boxShadow: '0 3px 6px rgba(0,0,0,0.7), inset 0 1px 2px rgba(255,255,255,0.2)',
-                        zIndex: 10
-                      }}>
-                        {num}
-                      </div>
+                      left: '50%',
+                      transform: `translateX(-50%) rotate(${-angle}deg)`,
+                      color: '#FFFFFF',
+                      fontSize: '18px',
+                      fontWeight: '900',
+                      textShadow: '3px 3px 6px rgba(0,0,0,0.9)',
+                      background: `radial-gradient(circle, ${segmentColor}, ${segmentColor === '#228B22' ? '#006400' : segmentColor === '#DC143C' ? '#8B0000' : '#000000'})`,
+                      width: '35px',
+                      height: '25px',
+                      borderRadius: '6px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      border: '2px solid #FFD700',
+                      boxShadow: '0 3px 6px rgba(0,0,0,0.7), inset 0 1px 2px rgba(255,255,255,0.2)',
+                      zIndex: 10
+                    }}>
+                      {num}
                     </div>
+                  </div>
                 );
               })}
               
@@ -512,21 +540,21 @@ function RoulettePro({onDone}){
               {Array.from({length: NUM_SLOTS}).map((_, i) => {
                 const dividerAngle = (i + 0.5) * DEG; // half-slot boundary
                 return (
-                  <div
-                    key={i}
-                    style={{
-                      position: 'absolute',
-                      top: '50%',
-                      left: '50%',
-                      width: '3px',
+                <div
+                  key={i}
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    width: '3px',
                       height: `${WHEEL_OUTER_RADIUS + 100}px`, // Extend to outer circumference
-                      background: 'linear-gradient(to bottom, #FFD700, #B8860B)',
+                    background: 'linear-gradient(to bottom, #FFD700, #B8860B)',
                       transformOrigin: '50% 100%',
                       transform: `translate(-50%, 0) rotate(${dividerAngle}deg)`,
                       marginTop: `-${WHEEL_OUTER_RADIUS + 100}px`, // Adjust margin to match height
-                      zIndex: 5
-                    }}
-                  />
+                    zIndex: 5
+                  }}
+                />
                 );
               })}
             </div>
@@ -558,23 +586,23 @@ function RoulettePro({onDone}){
         <div 
           ref={ballRef}
           style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transformOrigin: '0 0',
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transformOrigin: '0 0',
             transform: `translate(-50%, -50%) rotate(${
               (-wheelRotation * 1.5) + ballOffset
             }deg) translate(0, -420px)`,
-            width: '32px',
-            height: '32px',
-            background: 'radial-gradient(circle, #FFFFFF 0%, #E0E0E0 70%, #C0C0C0 100%)',
-            borderRadius: '50%',
-            border: '6px solid #C0C0C0',
-            boxShadow: '0 0 40px rgba(255,255,255,0.9), 0 10px 20px rgba(0,0,0,0.4)',
+          width: '32px',
+          height: '32px',
+          background: 'radial-gradient(circle, #FFFFFF 0%, #E0E0E0 70%, #C0C0C0 100%)',
+          borderRadius: '50%',
+          border: '6px solid #C0C0C0',
+          boxShadow: '0 0 40px rgba(255,255,255,0.9), 0 10px 20px rgba(0,0,0,0.4)',
             transition: spinning
               ? 'transform 3s cubic-bezier(0.25,0.46,0.45,0.94)' // physics feel
               : 'transform 300ms ease-out',                      // micro-center only
-            zIndex: 25
+          zIndex: 25
           }} 
           onMouseEnter={() => console.log('Ball state:', { spinning, ballOffset, wheelRotation })}
         />
@@ -593,24 +621,11 @@ function RoulettePro({onDone}){
           opacity: 0.4,
           zIndex: 1
         }} />
-      </div>
-      
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-        <div className="xl:col-span-2 space-y-6">
-          <div className="casino-felt p-6 rounded-3xl border-4 border-yellow-600 shadow-2xl">
-            <div className="text-center mb-4">
-              <div className="text-2xl font-bold text-yellow-400 text-shadow-gold">BETTING TABLE</div>
-              {bets.length === 0 && !spinning && (
-                <div className="text-yellow-300 text-sm mt-2 opacity-70">
-                  Click on any number or betting area to place your bet
-                </div>
-              )}
-            </div>
-            <RouletteFeltGrid chipValue={chip} onPlace={place} disabled={spinning}/>
           </div>
         </div>
         
-        <div className="space-y-6">
+        {/* Bet Slip */}
+        <div className="flex-shrink-0 space-y-6 w-96 -ml-20">
           <div className="glass-effect p-6 rounded-3xl neon-glow">
             <div className="text-yellow-400 font-bold text-xl mb-4 text-center text-shadow-gold">💰 BET SLIP 💰</div>
             <div className="space-y-3 max-h-40 overflow-y-auto">
@@ -625,21 +640,21 @@ function RoulettePro({onDone}){
                   }}>
                     <span className="text-white font-semibold">{b.type}: <span className="text-yellow-400">{JSON.stringify(b.value||b.numbers)}</span></span>
                     <div className="flex items-center gap-2">
-                      <div className="chip text-sm font-bold text-white flex items-center justify-center w-12 h-12" style={{
-                        background: `radial-gradient(circle, ${b.amount >= 100 ? '#8B0000' : b.amount >= 50 ? '#006400' : b.amount >= 25 ? '#000080' : '#8B4513'}, #000)`,
-                        border: '3px solid #FFD700',
-                        borderRadius: '50%',
-                        boxShadow: '0 4px 8px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.3)',
-                        transform: 'perspective(100px) rotateX(15deg)',
-                        transition: 'transform 0.2s ease'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.target.style.transform = 'perspective(100px) rotateX(15deg) translateY(-2px)'
-                      }}
-                      onMouseLeave={(e) => {
-                        e.target.style.transform = 'perspective(100px) rotateX(15deg) translateY(0px)'
-                      }}>
-                        ${b.amount}
+                    <div className="chip text-sm font-bold text-white flex items-center justify-center w-12 h-12" style={{
+                      background: `radial-gradient(circle, ${b.amount >= 100 ? '#8B0000' : b.amount >= 50 ? '#006400' : b.amount >= 25 ? '#000080' : '#8B4513'}, #000)`,
+                      border: '3px solid #FFD700',
+                      borderRadius: '50%',
+                      boxShadow: '0 4px 8px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.3)',
+                      transform: 'perspective(100px) rotateX(15deg)',
+                      transition: 'transform 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.transform = 'perspective(100px) rotateX(15deg) translateY(-2px)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.transform = 'perspective(100px) rotateX(15deg) translateY(0px)'
+                    }}>
+                      ${b.amount}
                       </div>
                       <button
                         onClick={() => setBets(prev => prev.filter((_, index) => index !== i))}
@@ -689,8 +704,20 @@ function RoulettePro({onDone}){
               )}
             </div>
           </div>}
-          
+            </div>
+            </div>
+      
+      {/* Full Width Betting Table */}
+      <div className="casino-felt p-6 rounded-3xl border-4 border-yellow-600 shadow-2xl">
+        <div className="text-center mb-4">
+          <div className="text-2xl font-bold text-yellow-400 text-shadow-gold">BETTING TABLE</div>
+          {bets.length === 0 && !spinning && (
+            <div className="text-yellow-300 text-sm mt-2 opacity-70">
+              Click on any number or betting area to place your bet
+            </div>
+          )}
         </div>
+        <RouletteFeltGrid chipValue={chip} onPlace={place} disabled={spinning}/>
       </div>
       
       {/* Confetti Animation */}
