@@ -1,8 +1,9 @@
 import React, { useState, useRef, useLayoutEffect } from 'react'
 import rocketURL from '../../assets/svg/crash/rocket.svg'
 import flameURL from '../../assets/svg/crash/flame.svg'
+import gameEngine from '../../services/gameEngine.js'
+
 export default function Crash({onDone}){
-  const api=window.CASINO_API
   const [stake,setStake]=useState(1)
   const [auto,setAuto]=useState(2.0)
   const [res,setRes]=useState(null)
@@ -73,10 +74,9 @@ export default function Crash({onDone}){
     setCashoutMultiplier(null)
     setShowExplosion(false)
     
-    // Get the crash result from backend first
-    const r = await fetch(`${api}/casino/crash/play`, {method:'POST', headers:{'Content-Type':'application/json','X-User-Id':'demo-user'}, body: JSON.stringify({stake, currency:'USD', params:{auto_cashout:auto}})})
-    const j = await r.json()
-    const actualCrashMultiplier = j.result?.multiplier || 1.01
+    // Use real game engine to get crash result
+    const result = await gameEngine.playCrash(stake, auto)
+    const actualCrashMultiplier = result.crash_point
     
     let autoCashedOut = false
     let manualCashedOut = false
@@ -232,8 +232,8 @@ export default function Crash({onDone}){
       {!isFlying && (
         <div className="flex flex-col items-center gap-3">
           <label className="text-yellow-400 font-bold text-sm uppercase tracking-widest">Total Win</label>
-          <div className={`balance-display text-3xl font-black ${res?.payout > 0 ? 'animate-pulse-win' : ''}`}>
-            ${res?.payout?.toFixed(2)||'0.00'}
+          <div className={`balance-display text-3xl font-black ${res?.result?.payout > 0 ? 'animate-pulse-win' : ''}`}>
+            ${res?.result?.payout?.toFixed(2)||'0.00'}
           </div>
         </div>
       )}

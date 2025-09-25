@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
+import gameEngine from '../../services/gameEngine.js'
+
 export default function Slots({onDone}){
-  const api = window.CASINO_API
   const [stake,setStake]=useState(1)
   const [spinning,setSpinning]=useState(false)
   const [reelStates,setReelStates]=useState([false, false, false, false, false])
@@ -12,9 +13,9 @@ export default function Slots({onDone}){
     setSpinning(true)
     setReelStates([true, true, true, true, true])
     
-    const r = await fetch(`${api}/casino/slots/spin`, {method:'POST', headers:{'Content-Type':'application/json','X-User-Id':'demo-user'}, body: JSON.stringify({stake, currency:'USD'})})
-    const j = await r.json()
-    setRes(j)
+    // Use real game engine instead of API
+    const result = await gameEngine.spinSlots(stake)
+    setRes({result: result})
     
     setTimeout(() => setReelStates(prev => [false, ...prev.slice(1)]), 2000)
     setTimeout(() => setReelStates(prev => [prev[0], false, ...prev.slice(2)]), 2500)
@@ -28,11 +29,11 @@ export default function Slots({onDone}){
   }
   // Default reels to show when no result yet
   const defaultReels = [
-    ['A', 'K', 'Q'],
-    ['K', 'Q', 'J'], 
-    ['Q', 'J', '10'],
-    ['J', '10', '9'],
-    ['10', '9', '8']
+    ['🍒', '🍋', '🍊'],
+    ['🍇', '🔔', '⭐'], 
+    ['💎', '7️⃣', '🍒'],
+    ['🍋', '🍊', '🍇'],
+    ['🔔', '⭐', '💎']
   ]
   const reels = res?.result?.reels || defaultReels
   return <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
@@ -158,9 +159,9 @@ export default function Slots({onDone}){
           border: '2px solid rgba(255, 215, 0, 0.5)',
           borderRadius: '20px',
           boxShadow: '0 0 30px rgba(255, 215, 0, 0.4)',
-          animation: res?.payout > 0 ? 'pulse-win 1s ease-in-out infinite' : 'none'
+          animation: res?.result?.payout > 0 ? 'pulse-win 1s ease-in-out infinite' : 'none'
         }}>
-          ${res?.payout?.toFixed(2)||'0.00'}
+          ${res?.result?.payout?.toFixed(2)||'0.00'}
         </div>
       </div>
     </div>
@@ -317,51 +318,46 @@ export default function Slots({onDone}){
       </div>
     )}
     
-    <div className="grid grid-cols-5 gap-4 text-center text-yellow-300">
+    <div className="grid grid-cols-4 gap-4 text-center text-yellow-300">
       <div className="glass-effect p-4 rounded-xl hover:scale-105 transition-transform duration-300">
-        <div className="text-4xl mb-2" style={{
-          fontFamily: 'serif',
-          fontWeight: 'bold',
-          color: '#FFD700',
-          textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
-        }}>A</div>
-        <div className="font-semibold">Ace</div>
-        <div className="text-yellow-400 font-bold text-sm">3: 2x | 4: 5x | 5: 10x</div>
+        <div className="text-4xl mb-2">🍒</div>
+        <div className="font-semibold">Cherry</div>
+        <div className="text-yellow-400 font-bold text-sm">3: 2x</div>
       </div>
       <div className="glass-effect p-4 rounded-xl hover:scale-105 transition-transform duration-300">
-        <div className="text-4xl mb-2" style={{
-          fontFamily: 'serif',
-          fontWeight: 'bold',
-          color: '#FFD700',
-          textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
-        }}>K</div>
-        <div className="font-semibold">King</div>
-        <div className="text-yellow-400 font-bold text-sm">3: 1.5x | 4: 4x | 5: 8x</div>
+        <div className="text-4xl mb-2">🍋</div>
+        <div className="font-semibold">Lemon</div>
+        <div className="text-yellow-400 font-bold text-sm">3: 5x</div>
       </div>
       <div className="glass-effect p-4 rounded-xl hover:scale-105 transition-transform duration-300">
-        <div className="text-4xl mb-2" style={{
-          fontFamily: 'serif',
-          fontWeight: 'bold',
-          color: '#FFD700',
-          textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
-        }}>Q</div>
-        <div className="font-semibold">Queen</div>
-        <div className="text-yellow-400 font-bold text-sm">3: 1.2x | 4: 3x | 5: 6x</div>
+        <div className="text-4xl mb-2">🍊</div>
+        <div className="font-semibold">Orange</div>
+        <div className="text-yellow-400 font-bold text-sm">3: 10x</div>
       </div>
       <div className="glass-effect p-4 rounded-xl hover:scale-105 transition-transform duration-300">
-        <div className="text-4xl mb-2" style={{
-          fontFamily: 'serif',
-          fontWeight: 'bold',
-          color: '#FFD700',
-          textShadow: '2px 2px 4px rgba(0,0,0,0.5)'
-        }}>J</div>
-        <div className="font-semibold">Jack</div>
-        <div className="text-yellow-400 font-bold text-sm">3: 1x | 4: 2.5x | 5: 5x</div>
+        <div className="text-4xl mb-2">🍇</div>
+        <div className="font-semibold">Grapes</div>
+        <div className="text-yellow-400 font-bold text-sm">3: 15x</div>
+      </div>
+      <div className="glass-effect p-4 rounded-xl hover:scale-105 transition-transform duration-300">
+        <div className="text-4xl mb-2">🔔</div>
+        <div className="font-semibold">Bell</div>
+        <div className="text-yellow-400 font-bold text-sm">3: 20x</div>
+      </div>
+      <div className="glass-effect p-4 rounded-xl hover:scale-105 transition-transform duration-300">
+        <div className="text-4xl mb-2">⭐</div>
+        <div className="font-semibold">Star</div>
+        <div className="text-yellow-400 font-bold text-sm">3: 50x</div>
       </div>
       <div className="glass-effect p-4 rounded-xl hover:scale-105 transition-transform duration-300">
         <div className="text-4xl mb-2">💎</div>
         <div className="font-semibold">Diamond</div>
-        <div className="text-yellow-400 font-bold text-sm">3: 5x | 4: 12x | 5: 25x</div>
+        <div className="text-yellow-400 font-bold text-sm">3: 100x</div>
+      </div>
+      <div className="glass-effect p-4 rounded-xl hover:scale-105 transition-transform duration-300">
+        <div className="text-4xl mb-2">7️⃣</div>
+        <div className="font-semibold">Lucky 7</div>
+        <div className="text-yellow-400 font-bold text-sm">3: 500x</div>
       </div>
     </div>
   </div>

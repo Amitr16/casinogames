@@ -1,57 +1,71 @@
 import React, { useState } from 'react'
-import { API_BASE_URL } from '../../config.js'
 import BaccaratRoadmaps from '../../components/BaccaratRoadmaps'
+import gameEngine from '../../services/gameEngine.js'
 
 // Helper function to convert card string to image filename
 const getCardImage = (cardStr) => {
   // Handle card back (placeholder cards)
-  if (cardStr === '🂠' || cardStr === 'back' || !cardStr || cardStr.trim() === '') {
+  if (cardStr === '🂠' || cardStr === 'back' || !cardStr || (typeof cardStr === 'string' && cardStr.trim() === '')) {
     return new URL('../../assets/png/back.png', import.meta.url).href;
   }
   
-  // Extract value and suit from card string
-  const value = cardStr.replace(/[♠♥♦♣SHDC]/g, '').trim();
-  let suit = '';
-  
-  if (cardStr.includes('♠') || cardStr.includes('S')) suit = 'spades';
-  else if (cardStr.includes('♥') || cardStr.includes('H')) suit = 'hearts';
-  else if (cardStr.includes('♦') || cardStr.includes('D')) suit = 'diamonds';
-  else if (cardStr.includes('♣') || cardStr.includes('C')) suit = 'clubs';
-  else {
-    // Fallback: assign suit based on position or random
-    const suits = ['spades', 'hearts', 'diamonds', 'clubs'];
-    const suitIndex = (value.charCodeAt(0) + cardStr.length) % 4;
-    suit = suits[suitIndex];
+  // Handle card objects from game engine
+  if (typeof cardStr === 'object' && cardStr.suit && cardStr.rank) {
+    const rank = cardStr.rank.toLowerCase();
+    const suit = cardStr.suit.toLowerCase();
+    return new URL(`../../assets/png/${rank}_of_${suit}.png`, import.meta.url).href;
   }
   
-  // Convert value to filename format
-  let filenameValue = value.toLowerCase();
-  if (filenameValue === 'j') filenameValue = 'jack';
-  else if (filenameValue === 'q') filenameValue = 'queen';
-  else if (filenameValue === 'k') filenameValue = 'king';
-  else if (filenameValue === 'a') filenameValue = 'ace';
+  // Handle card strings
+  if (typeof cardStr === 'string') {
+    // Extract value and suit from card string
+    const value = cardStr.replace(/[♠♥♦♣SHDC]/g, '').trim();
+    let suit = '';
+    
+    if (cardStr.includes('♠') || cardStr.includes('S')) suit = 'spades';
+    else if (cardStr.includes('♥') || cardStr.includes('H')) suit = 'hearts';
+    else if (cardStr.includes('♦') || cardStr.includes('D')) suit = 'diamonds';
+    else if (cardStr.includes('♣') || cardStr.includes('C')) suit = 'clubs';
+    else {
+      // Fallback: assign suit based on position or random
+      const suits = ['spades', 'hearts', 'diamonds', 'clubs'];
+      const suitIndex = (value.charCodeAt(0) + cardStr.length) % 4;
+      suit = suits[suitIndex];
+    }
+    
+    // Convert value to filename format
+    let filenameValue = value.toLowerCase();
+    if (filenameValue === 'j') filenameValue = 'jack';
+    else if (filenameValue === 'q') filenameValue = 'queen';
+    else if (filenameValue === 'k') filenameValue = 'king';
+    else if (filenameValue === 'a') filenameValue = 'ace';
+    
+    return new URL(`../../assets/png/${filenameValue}_of_${suit}.png`, import.meta.url).href;
+  }
   
-  return new URL(`../../assets/png/${filenameValue}_of_${suit}.png`, import.meta.url).href;
+  // Fallback to card back if unknown format
+  return new URL('../../assets/png/back.png', import.meta.url).href;
 };
 export default function Baccarat({onDone}){
-  const api=window.CASINO_API
   const [stake,setStake]=useState(5)
   const [side,setSide]=useState('player')
   const [res,setRes]=useState(null)
   const [entries,setEntries]=useState([])
   const play= async()=>{
-    // Show placeholder cards immediately
-    setRes({
-      result: {
-        player: ['🂠', '🂠'],
-        banker: ['🂠', '🂠'],
-        player_total: 0,
-        banker_total: 0
+    try {
+      // Use real game engine instead of API
+      const result = await gameEngine.playBaccarat(side, stake)
+      setRes({result: result}); 
+      
+      // Only add to entries if there's a winner (game is finished)
+      if (result.winner) {
+        setEntries(prev=>[{winner:result.winner}, ...prev].slice(0,144)); 
       }
-    })
-    
-    const r = await fetch(`${api}/casino/baccarat/play`, {method:'POST', headers:{'Content-Type':'application/json','X-User-Id':'demo-user'}, body: JSON.stringify({stake, currency:'USD', params:{bet_on:side}})})
-    const j = await r.json(); setRes(j); setEntries(prev=>[{winner:j.result.winner}, ...prev].slice(0,144)); onDone&&onDone()
+      
+      onDone&&onDone()
+    } catch (error) {
+      console.error('Baccarat action failed:', error)
+    }
   }
   return <div className="space-y-8">
     <div className="text-center mb-8">
@@ -99,8 +113,8 @@ export default function Baccarat({onDone}){
       
       <div className="flex flex-col items-center gap-3">
         <label className="text-yellow-400 font-bold text-sm uppercase tracking-widest">Total Win</label>
-        <div className={`balance-display text-3xl font-black ${res?.payout > 0 ? 'animate-pulse-win' : ''}`}>
-          ${res?.payout?.toFixed(2)||'0.00'}
+        <div className={`balance-display text-3xl font-black ${res?.result?.winnings > 0 ? 'animate-pulse-win' : ''}`}>
+          ${res?.result?.winnings?.toFixed(2)||'0.00'}
         </div>
       </div>
     </div>

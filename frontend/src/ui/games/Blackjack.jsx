@@ -1,55 +1,78 @@
 import React, { useState, useMemo } from 'react'
 import BlackjackAdvanced from '../../components/BlackjackAdvanced'
+import gameEngine from '../../services/gameEngine.js'
 
 // Helper function to convert card string to image filename
 const getCardImage = (cardStr) => {
   // Handle card back (dealer's hole card)
-  if (cardStr === '🂠' || cardStr === 'back' || !cardStr || cardStr.trim() === '') {
+  if (cardStr === '🂠' || cardStr === 'back' || !cardStr || (typeof cardStr === 'string' && cardStr.trim() === '')) {
     return new URL('../../assets/png/back.png', import.meta.url).href;
   }
   
-  // Extract value and suit from card string
-  const value = cardStr.replace(/[♠♥♦♣SHDC]/g, '').trim();
-  let suit = '';
-  
-  if (cardStr.includes('♠') || cardStr.includes('S')) suit = 'spades';
-  else if (cardStr.includes('♥') || cardStr.includes('H')) suit = 'hearts';
-  else if (cardStr.includes('♦') || cardStr.includes('D')) suit = 'diamonds';
-  else if (cardStr.includes('♣') || cardStr.includes('C')) suit = 'clubs';
-  else {
-    // Fallback: assign suit based on position or random
-    const suits = ['spades', 'hearts', 'diamonds', 'clubs'];
-    const suitIndex = (value.charCodeAt(0) + cardStr.length) % 4;
-    suit = suits[suitIndex];
+  // Handle card objects from game engine
+  if (typeof cardStr === 'object' && cardStr.suit && cardStr.rank) {
+    const rank = cardStr.rank.toLowerCase();
+    const suit = cardStr.suit.toLowerCase();
+    return new URL(`../../assets/png/${rank}_of_${suit}.png`, import.meta.url).href;
   }
   
-  // Convert value to filename format
-  let filenameValue = value.toLowerCase();
-  if (filenameValue === 'j') filenameValue = 'jack';
-  else if (filenameValue === 'q') filenameValue = 'queen';
-  else if (filenameValue === 'k') filenameValue = 'king';
-  else if (filenameValue === 'a') filenameValue = 'ace';
+  // Handle card strings like "A♠", "K♥", etc.
+  if (typeof cardStr === 'string') {
+    let rank = cardStr.charAt(0);
+    let suit = cardStr.charAt(1);
+    
+    // Convert suit symbols to names
+    if (suit === '♠') suit = 'spades';
+    else if (suit === '♥') suit = 'hearts';
+    else if (suit === '♦') suit = 'diamonds';
+    else if (suit === '♣') suit = 'clubs';
+    
+    // Convert rank to filename format
+    if (rank === 'A') rank = 'ace';
+    else if (rank === 'K') rank = 'king';
+    else if (rank === 'Q') rank = 'queen';
+    else if (rank === 'J') rank = 'jack';
+    
+    return new URL(`../../assets/png/${rank}_of_${suit}.png`, import.meta.url).href;
+  }
   
-  return new URL(`../../assets/png/${filenameValue}_of_${suit}.png`, import.meta.url).href;
+  // Fallback to card back if unknown format
+  return new URL('../../assets/png/back.png', import.meta.url).href;
 };
 
 // Helper function to calculate card value
 const getCardValue = (cardStr) => {
-  if (!cardStr || cardStr === '🂠' || cardStr.trim() === '') return 0;
-  const value = cardStr.replace(/[♠♥♦♣SHDC]/g, '').trim();
-  if (value === 'A') return 11;
-  if (['J','Q','K'].includes(value)) return 10;
-  return parseInt(value) || 0;
+  if (!cardStr || cardStr === '🂠' || (typeof cardStr === 'string' && cardStr.trim() === '')) return 0;
+  
+  // Handle card objects from game engine
+  if (typeof cardStr === 'object' && cardStr.suit && cardStr.rank) {
+    const rank = cardStr.rank.toLowerCase();
+    if (rank === 'ace') return 11;
+    if (['jack', 'queen', 'king'].includes(rank)) return 10;
+    return parseInt(rank) || 0;
+  }
+  
+  // Handle card strings
+  if (typeof cardStr === 'string') {
+    const value = cardStr.replace(/[♠♥♦♣SHDC]/g, '').trim();
+    if (value === 'A') return 11;
+    if (['J','Q','K'].includes(value)) return 10;
+    return parseInt(value) || 0;
+  }
+  
+  return 0;
 };
 
 // Helper function to calculate hand total
-const getHandTotal = (cards) => {
+const getHandTotal = (cards, showFaceDown = false) => {
   if (!cards || !Array.isArray(cards)) return 0;
-  return cards.reduce((sum, card) => sum + getCardValue(card), 0);
+  return cards.reduce((sum, card) => {
+    // Skip face-down cards unless explicitly showing them
+    if (card.faceDown && !showFaceDown) return sum;
+    return sum + getCardValue(card);
+  }, 0);
 };
 export default function Blackjack({onDone}){
-  const api = window.CASINO_API
-  const headers={'Content-Type':'application/json','X-User-Id':'demo-user'}
   const [stake,setStake]=useState(5)
   const [state,setState]=useState(null)
   const [res,setRes]=useState(null)
@@ -64,12 +87,22 @@ export default function Blackjack({onDone}){
         pv: 0,
         dv: 0
       })
-      setTimeout(() => setDealingCards(false), 2000)
     }
     
-    const body = {stake, currency:'USD', action, state, params:{ref:state?.ref}}
-    const r = await fetch(`${api}/casino/blackjack/play`, {method:'POST', headers, body: JSON.stringify(body)})
-    const j = await r.json(); setRes(j); setState(j.result); onDone&&onDone()
+    try {
+      // Use real game engine with current state
+      const result = await gameEngine.playBlackjack(action, stake, state)
+      setRes({result: result}); 
+      setState(result); 
+      
+      if(action === 'deal') {
+        setTimeout(() => setDealingCards(false), 2000)
+      }
+      onDone&&onDone()
+    } catch (error) {
+      console.error('Blackjack action failed:', error)
+      setDealingCards(false)
+    }
   }
   const allowed = useMemo(()=>{
     const s = state||{}
@@ -122,8 +155,8 @@ export default function Blackjack({onDone}){
         
         <div className="flex flex-col items-center gap-3">
           <label className="text-yellow-400 font-bold text-sm uppercase tracking-widest">Total Win</label>
-          <div className={`balance-display text-3xl font-black ${res?.payout > 0 ? 'animate-pulse-win' : ''}`}>
-            ${res?.payout?.toFixed(2)||'0.00'}
+          <div className={`balance-display text-3xl font-black ${state?.payout > 0 ? 'animate-pulse-win' : ''}`}>
+            ${state?.payout?.toFixed(2)||'0.00'}
           </div>
         </div>
       </div>
@@ -165,8 +198,8 @@ export default function Blackjack({onDone}){
                       }}
                     >
                       <img 
-                        src={getCardImage(card)}
-                        alt={card}
+                        src={card.faceDown ? new URL('../../assets/png/back.png', import.meta.url).href : getCardImage(card)}
+                        alt={card.faceDown ? 'Face Down' : card}
                         style={{
                           width: '100%',
                           height: '100%',
@@ -175,7 +208,7 @@ export default function Blackjack({onDone}){
                         }}
                         onError={(e) => {
                           // Fallback to card back if image not found
-                          e.target.src = '/src/assets/png/back.png';
+                          e.target.src = new URL('../../assets/png/back.png', import.meta.url).href;
                         }}
                       />
                     </div>
@@ -189,7 +222,7 @@ export default function Blackjack({onDone}){
               {state?.dealer && (
                 <div className="text-white font-bold text-xl bg-black/50 rounded-xl p-3 inline-block">
                   Total: <span className="text-yellow-400 text-2xl">
-                    {getHandTotal(state.dealer)}
+                    {state.final ? getHandTotal(state.dealer, true) : getHandTotal(state.dealer, false)}
                   </span>
                 </div>
               )}
@@ -230,8 +263,8 @@ export default function Blackjack({onDone}){
                       }}
                     >
                       <img 
-                        src={getCardImage(card)}
-                        alt={card}
+                        src={card.faceDown ? new URL('../../assets/png/back.png', import.meta.url).href : getCardImage(card)}
+                        alt={card.faceDown ? 'Face Down' : card}
                         style={{
                           width: '100%',
                           height: '100%',
@@ -240,7 +273,7 @@ export default function Blackjack({onDone}){
                         }}
                         onError={(e) => {
                           // Fallback to card back if image not found
-                          e.target.src = '/src/assets/png/back.png';
+                          e.target.src = new URL('../../assets/png/back.png', import.meta.url).href;
                         }}
                       />
                     </div>
@@ -257,13 +290,38 @@ export default function Blackjack({onDone}){
         {state?.final && (
           <div className="text-center mt-8">
             <div className={`text-4xl font-black p-6 rounded-2xl ${
-              res?.payout > 0 ? 'text-green-400 bg-green-900/30 animate-pulse-win' : 'text-red-400 bg-red-900/30'
+              (state.result === 'win' || state.result === 'blackjack') ? 'text-green-400 bg-green-900/30 animate-pulse-win' : 'text-red-400 bg-red-900/30'
             }`}>
-              {res?.payout > 0 ? '🎉 YOU WIN! 🎉' : '💔 DEALER WINS 💔'}
+              {(state.result === 'win' || state.result === 'blackjack') ? '🎉 YOU WIN! 🎉' : '💔 DEALER WINS 💔'}
             </div>
-            {state.pv === 21 && state.player?.length === 2 && (
+            
+            {/* Payout Display */}
+            {state.payout !== undefined && (
+              <div className={`text-2xl font-bold mt-4 p-4 rounded-xl ${
+                state.payout > 0 ? 'text-green-400 bg-green-900/20' : 'text-gray-400 bg-gray-900/20'
+              }`}>
+                {state.payout > 0 ? (
+                  <>
+                    <div className="text-3xl mb-2">💰 +${state.payout.toFixed(2)}</div>
+                    <div className="text-sm opacity-80">Total Winnings</div>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-xl mb-2">💸 -${state.stake.toFixed(2)}</div>
+                    <div className="text-sm opacity-80">Bet Lost</div>
+                  </>
+                )}
+              </div>
+            )}
+            
+            {state.result === 'blackjack' && (
               <div className="text-6xl font-black text-yellow-400 text-shadow-gold animate-jackpot mt-4">
                 ♠️ BLACKJACK! ♠️
+              </div>
+            )}
+            {state.result === 'push' && (
+              <div className="text-4xl font-black text-blue-400 text-shadow-gold mt-4">
+                🤝 PUSH! 🤝
               </div>
             )}
           </div>

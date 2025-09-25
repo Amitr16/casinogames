@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import RouletteFeltGrid from '../../components/RouletteFeltGrid'
+import gameEngine from '../../services/gameEngine.js'
 
 // Shared geometry constants for perfect concentricity
 const NUM_SLOTS = 37;
@@ -45,7 +46,6 @@ function getScreenAngle(el) {
 
 function RoulettePro({onDone}){
   
-  const api = window.CASINO_API
   const [bets,setBets]=useState([])
   const [chip,setChip]=useState(5)
   const [spinning,setSpinning]=useState(false)
@@ -132,12 +132,17 @@ function RoulettePro({onDone}){
     // const delta = sdist(centerScreen, ballDeg);
     // if (Math.abs(delta) > 0.1) setBallOffset(o => o + delta);
 
-    // Show the derived winner
-    setResultUI({ pocket: pocketFinal, serverPocket: null });
-    
     // Calculate winnings and trigger celebrations
     const totalBet = bets.reduce((sum, bet) => sum + bet.amount, 0)
     const winnings = calculateWinnings(pocketFinal, bets)
+    
+    // Show the derived winner with winnings
+    setResultUI({ pocket: pocketFinal, serverPocket: null, winnings: winnings, totalBet: totalBet });
+    
+    // Credit winnings to wallet
+    if (winnings > 0) {
+      gameEngine.credit(winnings);
+    }
     
     console.log('DEBUG: Winner calculation', {
       pocketFinal, totalBet, winnings, bets
@@ -154,17 +159,16 @@ function RoulettePro({onDone}){
       } else {
         console.log('DEBUG: No bets placed, no celebration');
       }
-    }, 2000); // Show after 2 seconds
-    
-    // Reset everything after a longer delay to allow celebrations to show
-    setTimeout(() => {
-      setBets([]) // Clear all bets
-      setWheelRotation(0) // Reset wheel to zero degrees
-      setBallOffset(0) // Reset ball offset
-      setResultUI(null) // Clear result display
-    }, 4000) // 4 seconds after result is shown to allow celebrations
-    
-    onDone && onDone();
+      
+      // Reset everything after message has been displayed for 4 seconds
+      setTimeout(() => {
+        setBets([]) // Clear all bets
+        setWheelRotation(0) // Reset wheel to zero degrees
+        setBallOffset(0) // Reset ball offset
+        setResultUI(null) // Clear result display
+        onDone && onDone(); // Refresh balance
+      }, 4000) // 4 seconds after message appears
+    }, 2000); // Show message after 2 seconds
   };
 
   const place = (b)=> {
@@ -284,30 +288,23 @@ function RoulettePro({onDone}){
     setBallOffset(0);
     setResultUI(null);
 
-    // Plan a natural-looking spin amount (do NOT solve for server pocket)
+    // Plan a natural-looking spin amount
     const base = 5 * 360;              // ≥ a few full turns
     const jitter = Math.random() * 720;  // extra randomness
     const delta = base + jitter;
 
     setWheelRotation(prev => prev + delta);
 
-    // (Optional) still call server for auditing / payout calc
-    // but do NOT use it to set the wheel or UI winner.
-    let serverPocket = null;
-    try {
-      const betsToSend = bets.length > 0 ? bets : [{type:'single', value:0, numbers:[0], amount:1}]
-      const r = await fetch(`${api}/casino/roulette/spin`, {
-        method:'POST',
-        headers:{'Content-Type':'application/json','X-User-Id':'demo-user'},
-        body: JSON.stringify({stake:1,currency:'USD', params:{bets: betsToSend}})
-      })
-      const j = await r.json()
-      serverPocket = j?.result?.spin?.pocket ?? null;
-    } catch (e) {
-      console.warn('spin api failed (Pattern B continues visually):', e);
+    // Debit the wallet for the bets
+    const totalBet = bets.reduce((sum, bet) => sum + bet.amount, 0);
+    if (totalBet > 0) {
+      await gameEngine.debit(totalBet);
     }
 
-    // Winner calculation now happens on transitionend event
+    // Let the DOM-based physics determine the winner naturally
+    // The transitionend listener will call computeWinnerFromDOM() when the wheel stops
+    // No pre-committed results - pure physics-based determination
+    // Reset timing is handled in computeWinnerFromDOM() after message display
   }
   // Confetti component
   const Confetti = () => {
@@ -672,6 +669,12 @@ function RoulettePro({onDone}){
               <span className="text-white font-bold text-lg">Total Bet:</span>
               <div className="balance-display text-xl">
                 ${bets.reduce((sum,b)=>sum+b.amount,0)}
+              </div>
+            </div>
+            <div className="mt-2 pt-2 border-t border-yellow-500/20 flex justify-between items-center">
+              <span className="text-white font-bold text-lg">Total Win:</span>
+              <div className={`balance-display text-xl font-black ${resultUI?.winnings > 0 ? 'text-green-400 animate-pulse-win' : 'text-gray-400'}`}>
+                ${resultUI?.winnings?.toFixed(2) || '0.00'}
               </div>
             </div>
           </div>

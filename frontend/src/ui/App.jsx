@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { API_BASE_URL } from '../config.js'
+import gameEngine from '../services/gameEngine.js'
 import Blackjack from './games/Blackjack'
 import Baccarat from './games/Baccarat'
 import Slots from './games/Slots'
@@ -16,13 +16,12 @@ const TABS=[
 
 export default function App(){
   const [tab,setTab]=useState('roulette-pro')
-  const api = API_BASE_URL
   const [balance, setBalance] = useState(null)
 
   const refreshBalance = async ()=>{
     try {
-      const r = await fetch(`${api}/casino/wallet/balance`, {headers:{'X-User-Id':'demo-user'}})
-      if(r.ok){ setBalance(await r.json()) } else { setBalance({balance: 1000, currency: 'USD'}) }
+      const result = await gameEngine.getBalance()
+      setBalance(result)
     } catch(e) { 
       console.error(e)
       setBalance({balance: 1000, currency: 'USD'})

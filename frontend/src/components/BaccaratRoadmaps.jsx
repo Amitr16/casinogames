@@ -15,10 +15,10 @@ export default function BaccaratRoadmaps({entries=[]}){
         
         <div className="grid grid-cols-24 gap-2 p-4 bg-black/30 rounded-2xl border-2 border-yellow-500/30">
           {grid.flat().map((e,i)=>{
-            const color = !e? 'transparent' : 
+            const color = !e || !e.winner? 'transparent' : 
               e.winner==='player'? '#3b82f6' : 
               e.winner==='banker'? '#ef4444' : '#10b981'
-            const symbol = !e? '' : 
+            const symbol = !e || !e.winner? '' : 
               e.winner==='player'? 'P' : 
               e.winner==='banker'? 'B' : 'T'
             
@@ -27,10 +27,10 @@ export default function BaccaratRoadmaps({entries=[]}){
                 key={i} 
                 className="w-6 h-6 rounded-full border-2 border-white/40 shadow-lg transition-all duration-300 hover:scale-125 hover:shadow-xl flex items-center justify-center text-xs font-bold text-white cursor-pointer" 
                 style={{
-                  background: e ? `linear-gradient(135deg, ${color}, ${color}dd)` : 'rgba(255,255,255,0.1)',
-                  boxShadow: e ? `0 0 10px ${color}66` : 'inset 0 2px 4px rgba(0,0,0,0.3)'
+                  background: e && e.winner ? `linear-gradient(135deg, ${color}, ${color}dd)` : 'rgba(255,255,255,0.1)',
+                  boxShadow: e && e.winner ? `0 0 10px ${color}66` : 'inset 0 2px 4px rgba(0,0,0,0.3)'
                 }}
-                title={e ? `${e.winner.charAt(0).toUpperCase() + e.winner.slice(1)} wins` : 'No result'}
+                title={e && e.winner ? `${e.winner.charAt(0).toUpperCase() + e.winner.slice(1)} wins` : 'No result'}
               >
                 {symbol}
               </div>
